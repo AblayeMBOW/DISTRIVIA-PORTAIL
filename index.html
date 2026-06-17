@@ -173,7 +173,15 @@ if(CONFIGURED){
   try{
     firebase.initializeApp(firebaseConfig);
     fdb = firebase.firestore();
-    if(firebase.auth){ firebase.auth().signInAnonymously().catch(e=>console.warn("Auth:",e&&e.code)); }
+    // Cache local Firestore : réponses instantanées au retour
+    try{ fdb.enablePersistence({synchronizeTabs:true}).catch(()=>{}); }catch(e){}
+    if(firebase.auth){
+      // Persiste la session anonyme → fbReady() résout immédiatement aux visites suivantes
+      try{ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{}); }catch(e){}
+      if(!firebase.auth().currentUser){
+        firebase.auth().signInAnonymously().catch(e=>console.warn("Auth:",e&&e.code));
+      }
+    }
   }catch(e){ console.error("Firebase init:", e); }
 }
 
@@ -207,6 +215,7 @@ let session = null;         // {kind:"client"|"supplier", id, name, email, ...}
 let acctTab = "orders";
 let cart = [];              // [{name, family, qty, note}]
 let catalogProducts = [];   // produits venant de Gestion/Supabase (sinon FAMILIES)
+let announcements = [];     // annonces publiées depuis Gestion (promos, infos)
 let modalContent = null;
 
 const LS = {
@@ -247,7 +256,7 @@ async function sha256(str){
 async function fbReady(){
   if(!CONFIGURED || !firebase.auth) return;
   if(firebase.auth().currentUser) return;
-  await new Promise(res=>{ const to=setTimeout(res,4000);
+  await new Promise(res=>{ const to=setTimeout(res,2500);
     const u=firebase.auth().onAuthStateChanged(x=>{ if(x){ clearTimeout(to); u(); res(); } }); });
 }
 async function dbSignUp(kind, payload){
@@ -301,8 +310,16 @@ async function dbList(table, ownerField, ownerId){
   const d=demoDB(); const key={ portal_orders:"orders", portal_appointments:"appointments", portal_claims:"claims", portal_quotes:"quotes" }[table];
   return (d[key]||[]).filter(r=>r[ownerField]===ownerId).sort((a,b)=>(a.created<b.created?1:-1));
 }
-async function loadCatalog(){
+let catalogLoaded = false;
+async function loadCatalog(force){
   if(!CONFIGURED) return;
+  if(catalogLoaded && !force) return;        // déjà chargé : on ne refait rien
+  // 1) Affichage instantané depuis le cache local (si dispo)
+  try{
+    const cached = localStorage.getItem("distrivia-portail-catalog");
+    if(cached && !catalogProducts.length){ catalogProducts = JSON.parse(cached); }
+  }catch(e){}
+  // 2) Rafraîchissement depuis Firebase en arrière-plan
   try{
     await fbReady();
     const snap = await fdb.collection("distrivia").doc("etat").get();
@@ -310,10 +327,52 @@ async function loadCatalog(){
       const blob = snap.data().blob;
       if(blob){ const S = JSON.parse(blob);
         if(S.products && S.products.length){
-          catalogProducts = S.products.map(p=>({ name:p.name, family:p.family, price:p.price })); }
+          catalogProducts = S.products.map(p=>({ name:p.name, family:p.family, price:p.price }));
+          try{ localStorage.setItem("distrivia-portail-catalog", JSON.stringify(catalogProducts)); }catch(e){}
+        }
       }
     }
+    catalogLoaded = true;
   }catch(e){ console.warn("Catalogue:", e); }
+}
+async function loadAnnouncements(){
+  // cache instantané
+  try{ const c=localStorage.getItem("distrivia-portail-anns"); if(c && !announcements.length) announcements=JSON.parse(c); }catch(e){}
+  if(!CONFIGURED) return;
+  try{
+    await fbReady();
+    const snap = await fdb.collection("portal_announcements").get();
+    const today = new Date().toISOString().slice(0,10);
+    announcements = snap.docs.map(d=>d.data())
+      .filter(a=>a.active!==false && (!a.expire || a.expire>=today))
+      .sort((a,b)=>(a.created<b.created?1:-1));
+    try{ localStorage.setItem("distrivia-portail-anns", JSON.stringify(announcements)); }catch(e){}
+    // rafraîchir l'accueil si affiché
+    if(view==="home"){ const box=el("ann-box"); if(box) box.innerHTML=announcementsHTML(); }
+  }catch(e){ console.warn("Annonces:", e); }
+}
+function annColor(c){ return {terra:"#C85E2D",bleu:"#0F2A4A",vert:"#2E6B3E",rouge:"#A33B3B"}[c]||"#C85E2D"; }
+function annIcon(t){ return {promo:"🎉",info:"ℹ️",alert:"⚠️",event:"📅"}[t]||"📣"; }
+function annLabel(t){ return {promo:"Promotion",info:"Information",alert:"Alerte",event:"Événement"}[t]||"Annonce"; }
+function announcementsHTML(){
+  if(!announcements.length) return "";
+  return `<section style="padding:30px 0 0"><div class="wrap">
+    <div class="eyebrow">📣 Les actualités DISTRIVIA</div>
+    <div class="grid g2" style="margin-top:14px">
+      ${announcements.map(a=>{ const col=annColor(a.color); return `
+      <div style="border-radius:14px;overflow:hidden;box-shadow:var(--ombre);background:#fff">
+        <div style="background:${col};color:#fff;padding:14px 18px">
+          <div style="font-size:11px;letter-spacing:1px;opacity:.85;text-transform:uppercase">${annIcon(a.type)} ${annLabel(a.type)}</div>
+          <div style="font-size:19px;font-weight:800;margin-top:3px">${esc(a.title)}</div>
+        </div>
+        <div style="padding:16px 18px">
+          <div style="color:#444;font-size:14.5px;line-height:1.6">${esc(a.body||"").replace(/\n/g,"<br>")}</div>
+          ${a.cta?`<button class="btn" style="margin-top:12px;background:${col}" onclick="go('client-auth')">${esc(a.cta)}</button>`:""}
+          ${a.expire?`<div style="margin-top:10px;font-size:11px;color:#888">Valable jusqu'au ${a.expire}</div>`:""}
+        </div>
+      </div>`; }).join("")}
+    </div>
+  </div></section>`;
 }
 
 /* ============================================================
@@ -378,6 +437,8 @@ function vHome(){
       <div class="it"><span class="n">100 %</span><span class="l">CONFORME ANTI-PLASTIQUE</span></div>
     </div>
   </div></div>
+
+  <div id="ann-box">${announcementsHTML()}</div>
 
   <section><div class="wrap">
     <div class="eyebrow">Pourquoi DISTRIVIA</div>
@@ -526,7 +587,9 @@ async function doLogin(kind){
   try{
     const acc=await dbSignIn(kind, email, pass);
     session={ kind, id:acc.id, name:acc.name, email:acc.email };
-    saveSession(); await loadCatalog(); acctTab = kind==="client"?"orders":"quotes"; go(kind); toast("Bienvenue, "+acc.name);
+    saveSession(); acctTab = kind==="client"?"orders":"quotes"; go(kind); toast("Bienvenue, "+acc.name);
+    // catalogue en arrière-plan (ne bloque pas l'affichage)
+    loadCatalog().then(()=>{ if(view==="client"&&acctTab==="new") renderAcctBody(); });
   }catch(e){ el("a-fb").innerHTML=`<div class="err">${esc(e.message||"Connexion impossible.")}</div>`; }
 }
 async function doSignup(kind){
@@ -542,7 +605,8 @@ async function doSignup(kind){
   try{
     const acc=await dbSignUp(kind, payload);
     session={ kind, id:acc.id, name:acc.name, email:acc.email };
-    saveSession(); await loadCatalog(); acctTab=isClient?"orders":"quotes"; go(kind); toast("Compte créé. Bienvenue, "+name+" !");
+    saveSession(); acctTab=isClient?"orders":"quotes"; go(kind); toast("Compte créé. Bienvenue, "+name+" !");
+    loadCatalog().then(()=>{ if(view==="client"&&acctTab==="new") renderAcctBody(); });
   }catch(e){ el("a-fb").innerHTML=`<div class="err">${esc(e.message||"Création impossible.")}</div>`; }
 }
 
@@ -577,7 +641,7 @@ function setTab(t){ acctTab=t; if(view==="client"||view==="supplier") render(); 
 async function renderAcctBody(){
   const body=el("acct-body"); if(!body) return;
   if(view==="client"){
-    if(acctTab==="orders") return body.innerHTML=await clientOrdersHTML();
+    if(acctTab==="orders"){ body.innerHTML=await clientOrdersHTML(); bindOrderDetails(); return; }
     if(acctTab==="new") return body.innerHTML=clientNewOrderHTML(), bindCatalogPicker();
     if(acctTab==="appointments") return body.innerHTML=await clientApptHTML(), bindAppt();
     if(acctTab==="claims") return body.innerHTML=await clientClaimsHTML(), bindClaim();
@@ -591,27 +655,34 @@ async function renderAcctBody(){
 }
 
 /* ----- Client: orders list ----- */
+let _ordersCache = {};   // id -> order (pour le détail)
 async function clientOrdersHTML(){
   const list=await dbList("portal_orders","client_id",session.id);
   if(!list.length) return `<div class="card" style="text-align:center"><p style="margin-bottom:14px">Vous n'avez pas encore passé de commande.</p><button class="btn" onclick="setTab('new')">Passer ma première commande</button></div>`;
+  _ordersCache = {};
+  list.forEach(o=>{ _ordersCache[o.id||o.ref] = o; });
   return `<div class="tablewrap"><table>
     <tr><th>N°</th><th>Date</th><th>Articles</th><th>Statut</th><th></th></tr>
-    ${list.map(o=>`<tr><td><b>${esc(o.ref)}</b></td><td>${o.created.slice(0,10)}</td>
+    ${list.map(o=>`<tr><td><b>${esc(o.ref)}</b></td><td>${(o.created||"").slice(0,10)}</td>
       <td>${(o.items||[]).map(i=>i.qty+"× "+esc(i.name)).join(", ")}</td>
       <td><span class="badge ${o.status}">${statusLabel(o.status)}</span></td>
-      <td><button class="btn sm outline" onclick='showOrder(${JSON.stringify(JSON.stringify(o))})'>Détails</button></td></tr>`).join("")}
+      <td><button class="btn sm outline" data-vieworder="${esc(o.id||o.ref)}">Détails</button></td></tr>`).join("")}
   </table></div>`;
 }
 function statusLabel(s){ return {new:"Reçue",confirmed:"Confirmée",delivered:"Livrée",cancelled:"Annulée",pending:"En attente",resolved:"Résolue"}[s]||s; }
-function showOrder(js){
-  const o=JSON.parse(JSON.parse(js));
+function showOrder(id){
+  const o=_ordersCache[id]; if(!o) return;
   openModal(`<button class="x" onclick="closeModal()">×</button><h3 style="color:var(--bleu)">Commande ${esc(o.ref)}</h3>
-    <p class="muted">${o.created.slice(0,10)} · <span class="badge ${o.status}">${statusLabel(o.status)}</span></p>
+    <p class="muted">${(o.created||"").slice(0,10)} · <span class="badge ${o.status}">${statusLabel(o.status)}</span></p>
     <table style="margin-top:14px"><tr><th>Article</th><th class="num">Qté</th></tr>
     ${(o.items||[]).map(i=>`<tr><td>${esc(i.name)}${i.note?`<div class="muted">${esc(i.note)}</div>`:""}</td><td class="num">${i.qty}</td></tr>`).join("")}</table>
     ${o.note?`<p class="muted" style="margin-top:12px"><b>Note :</b> ${esc(o.note)}</p>`:""}
     <p class="muted" style="margin-top:12px">Mode : ${o.delivery==="pickup"?"Retrait entrepôt":"Livraison"} ${o.zone?"· "+esc(o.zone):""}</p>
+    ${o.localNum?`<p class="muted">Référence interne : <b>${esc(o.localNum)}</b></p>`:""}
     <button class="btn full" style="margin-top:16px" onclick="closeModal()">Fermer</button>`);
+}
+function bindOrderDetails(){
+  document.querySelectorAll("[data-vieworder]").forEach(b=> b.onclick = ()=> showOrder(b.dataset.vieworder));
 }
 
 /* ----- Client: new order (catalog picker + cart) ----- */
@@ -711,25 +782,56 @@ async function submitAppt(){
 }
 
 /* ----- Client: claims / Supplier: messages ----- */
+let _claimsCache = {};
 async function clientClaimsHTML(){ return claimsHTML("client_id"); }
 async function supplierMsgHTML(){ return claimsHTML("supplier_id","Message à DISTRIVIA"); }
 async function claimsHTML(field, title){
   const list=await dbList("portal_claims",field,session.id);
+  _claimsCache={}; list.forEach(c=>{ _claimsCache[c.id]=c; });
   return `<div class="grid g2">
     <div class="panel" style="margin:0">
-      <h3 style="color:var(--bleu); margin-bottom:10px">${title||"Nouvelle réclamation"}</h3>
-      ${!title?`<label>Type</label><select id="cl-type"><option>Problème de livraison</option><option>Produit non conforme</option><option>Erreur de facturation</option><option>Réclamation qualité</option><option>Autre</option></select>
+      <h3 style="color:var(--bleu); margin-bottom:10px">${title||"Nouveau message / réclamation"}</h3>
+      ${!title?`<label>Type</label><select id="cl-type"><option>Problème de livraison</option><option>Produit non conforme</option><option>Erreur de facturation</option><option>Réclamation qualité</option><option>Question / autre</option></select>
       <label>N° de commande concerné (facultatif)</label><input id="cl-ref" placeholder="Ex. WEB-2026-…">`:`<input type="hidden" id="cl-type" value="Message"><input type="hidden" id="cl-ref" value="">`}
       <label>Message</label><textarea id="cl-msg" placeholder="Décrivez votre demande…"></textarea>
       <button class="btn full" style="margin-top:14px" onclick="submitClaim('${field}')">Envoyer</button>
       <div id="cl-fb"></div>
     </div>
     <div>${list.length?`<div class="tablewrap"><table><tr><th>Objet</th><th>Date</th><th>Statut</th></tr>
-      ${list.map(c=>`<tr><td>${esc(c.type)}${c.ref?`<div class="muted">${esc(c.ref)}</div>`:""}<div class="muted">${esc((c.message||"").slice(0,60))}${(c.message||"").length>60?"…":""}</div></td><td>${c.created.slice(0,10)}</td><td><span class="badge ${c.status}">${statusLabel(c.status)}</span></td></tr>`).join("")}</table></div>`
+      ${list.map(c=>{ const nrep=(c.replies||[]).length; return `<tr style="cursor:pointer" data-viewclaim="${esc(c.id)}"><td>${esc(c.type)}${c.ref?`<div class="muted">${esc(c.ref)}</div>`:""}<div class="muted">${esc((c.message||"").slice(0,55))}${(c.message||"").length>55?"…":""}</div>${nrep?`<div style="color:var(--vert);font-size:12px">💬 ${nrep} réponse(s) — voir</div>`:""}</td><td>${(c.created||"").slice(0,10)}</td><td><span class="badge ${c.status}">${statusLabel(c.status)}</span></td></tr>`;}).join("")}</table></div>`
       :`<div class="card"><p class="muted">Aucun message pour l'instant.</p></div>`}</div>
   </div>`;
 }
-function bindClaim(){}
+function bindClaim(){
+  document.querySelectorAll("[data-viewclaim]").forEach(r=> r.onclick = ()=> showClaim(r.dataset.viewclaim));
+}
+function showClaim(id){
+  const c=_claimsCache[id]; if(!c) return;
+  const replies=c.replies||[];
+  const thread=`
+    <div style="background:var(--creme);border-radius:8px;padding:10px;margin:4px 0">
+      <div style="font-size:11px;color:#888">Vous · ${(c.created||"").slice(0,16).replace("T"," ")}</div>
+      <div style="margin-top:3px">${esc(c.message||"")}</div></div>
+    ${replies.map(r=>`<div style="background:${r.from==="DISTRIVIA"?"var(--bleu)":"var(--creme)"};color:${r.from==="DISTRIVIA"?"#fff":"#1A1A1A"};border-radius:8px;padding:10px;margin:4px 0;${r.from==="DISTRIVIA"?"margin-right:24px":"margin-left:24px"}">
+      <div style="font-size:11px;opacity:.8">${r.from==="DISTRIVIA"?"DISTRIVIA":"Vous"} · ${(r.date||"").slice(0,16).replace("T"," ")}</div>
+      <div style="margin-top:3px">${esc(r.text)}</div></div>`).join("")}`;
+  openModal(`<button class="x" onclick="closeModal()">×</button><h3 style="color:var(--bleu)">${esc(c.type||"Message")}</h3>
+    <p class="muted">${c.ref?"Réf. "+esc(c.ref)+" · ":""}<span class="badge ${c.status}">${statusLabel(c.status)}</span></p>
+    <div style="max-height:45vh;overflow:auto;margin:12px 0">${thread}</div>
+    ${replies.some(r=>r.from==="DISTRIVIA")?"":`<p class="muted" style="font-size:13px">Notre équipe vous répondra ici. Vous recevrez la réponse dans cet espace.</p>`}
+    <label>Ajouter un message</label><textarea id="cl-more" rows="2" placeholder="Votre réponse…"></textarea>
+    <button class="btn full" style="margin-top:10px" onclick="replyClaim('${esc(id)}')">Envoyer</button>`);
+}
+async function replyClaim(id){
+  const c=_claimsCache[id]; if(!c) return;
+  const t=el("cl-more").value.trim(); if(!t) return toast("Écrivez un message");
+  const replies=[...(c.replies||[]), { from:"client", text:t, date:nowISO() }];
+  try{
+    if(CONFIGURED){ await fbReady(); await fdb.collection("portal_claims").doc(id).update({replies, status:"pending"}); }
+    c.replies=replies; c.status="pending"; toast("Message envoyé ✓"); showClaim(id);
+  }catch(e){ toast("Erreur d'envoi"); }
+}
+window.showClaim=showClaim; window.replyClaim=replyClaim;
 async function submitClaim(field){
   const msg=el("cl-msg").value.trim(); if(!msg){ el("cl-fb").innerHTML=`<div class="err">Le message est requis.</div>`; return; }
   const row={ id:uid(), [field]:session.id, author_name:session.name, type:el("cl-type").value, ref:el("cl-ref").value.trim(), message:msg, status:"pending", created:nowISO() };
@@ -800,9 +902,12 @@ window.openModal=openModal; window.closeModal=closeModal; window.logout=logout;
 /* ---------- Boot ---------- */
 (async function boot(){
   try{ const s=localStorage.getItem("distrivia-portail-session"); if(s){ session=JSON.parse(s); } }catch(e){}
+  // Catalogue depuis le cache : disponible instantanément, avant même Firebase
+  try{ const c=localStorage.getItem("distrivia-portail-catalog"); if(c) catalogProducts=JSON.parse(c); }catch(e){}
+  try{ const a=localStorage.getItem("distrivia-portail-anns"); if(a) announcements=JSON.parse(a); }catch(e){}
   if(session){ view=session.kind; acctTab = session.kind==="client"?"orders":"quotes"; }
   render();
-  if(CONFIGURED){ try{ await loadCatalog(); if(view==="client"&&acctTab==="new") renderAcctBody(); }catch(e){ console.warn("Firebase init:",e); } }
+  if(CONFIGURED){ try{ await loadCatalog(); loadAnnouncements(); if(view==="client"&&acctTab==="new") renderAcctBody(); }catch(e){ console.warn("Firebase init:",e); } }
 })();
 </script>
 </body>
