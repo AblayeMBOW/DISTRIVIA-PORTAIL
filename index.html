@@ -84,6 +84,36 @@
   .prod .nm{font-weight:600; color:var(--anthra); font-size:14px;}
   .prod .ds{font-size:12.5px; color:var(--gris);}
 
+  /* CATALOGUE v2 */
+  .cat-toolbar{margin-bottom:14px;}
+  .cat-search{width:100%; max-width:440px; padding:13px 18px; border:1px solid #E2DDD0; border-radius:30px; font-size:15px; background:#fff; box-shadow:var(--ombre); outline:none;}
+  .cat-search:focus{border-color:var(--terra);}
+  .cat-filters{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:26px;}
+  .cat-chip{padding:8px 16px; border-radius:30px; border:1px solid #E2DDD0; background:#fff; color:var(--anthra); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s;}
+  .cat-chip:hover{border-color:var(--terra);}
+  .cat-chip.on{background:var(--bleu); color:#fff; border-color:var(--bleu);}
+  .cat-group{margin-bottom:30px;}
+  .cat-group-head{display:flex; align-items:center; gap:10px; margin-bottom:14px; padding-bottom:8px; border-bottom:2px solid var(--creme);}
+  .cat-group-head h3{color:var(--bleu); font-size:19px; margin:0;}
+  .cat-emoji{font-size:26px;}
+  .cat-count{margin-left:auto; background:var(--creme); color:var(--gris); font-size:12px; font-weight:700; padding:3px 11px; border-radius:20px;}
+  .cat-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px;}
+  .prod-card{background:#fff; border-radius:14px; padding:18px; box-shadow:var(--ombre); display:flex; flex-direction:column; transition:transform .15s, box-shadow .15s; border:1px solid #F0EBDE;}
+  .prod-card:hover{transform:translateY(-3px); box-shadow:0 8px 24px rgba(15,42,74,.14);}
+  .prod-ic{width:48px; height:48px; border-radius:12px; background:var(--creme); display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:12px;}
+  .prod-nm{font-weight:700; color:var(--anthra); font-size:15px; margin-bottom:4px;}
+  .prod-ds{font-size:12.5px; color:var(--gris); flex:1; margin-bottom:14px; line-height:1.45;}
+  .prod-add{background:var(--bleu); color:#fff; border:none; border-radius:9px; padding:9px; font-weight:700; font-size:13px; cursor:pointer; transition:background .15s;}
+  .prod-add:hover{background:var(--terra);}
+
+  /* SERVICES v2 */
+  .svc-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px; margin-top:24px;}
+  .svc-card{background:#fff; border-radius:16px; padding:26px; box-shadow:var(--ombre); border-top:4px solid var(--svc,var(--terra)); transition:transform .15s, box-shadow .15s;}
+  .svc-card:hover{transform:translateY(-4px); box-shadow:0 10px 28px rgba(15,42,74,.15);}
+  .svc-ic{width:56px; height:56px; border-radius:14px; background:var(--creme); display:flex; align-items:center; justify-content:center; font-size:28px; margin-bottom:16px;}
+  .svc-card h3{color:var(--bleu); font-size:18px; margin-bottom:8px;}
+  .svc-card p{color:var(--gris); font-size:14px; line-height:1.55;}
+
   /* FORMS */
   .panel{background:#fff; border-radius:14px; padding:26px; box-shadow:var(--ombre); max-width:520px; margin:0 auto;}
   .panel.wide{max-width:760px;}
@@ -382,11 +412,67 @@ function render(){
   const v = {
     home:vHome, "client-auth":()=>vAuth("client"), client:vClientSpace,
     "supplier-auth":()=>vAuth("supplier"), supplier:vSupplierSpace,
-    catalog:vCatalog, services:vServices, contact:vContact,
+    catalog:vCatalog, services:vServices, contact:vContact, track:vTrack,
   }[view] || vHome;
   el("app").innerHTML = shell(v());
   bind();
   window.scrollTo(0,0);
+}
+
+let trackOrder = null;     // commande chargée via QR (?cmd=)
+let trackLoading = false;
+function vTrack(){
+  if(trackLoading) return `<section><div class="wrap"><div class="card" style="text-align:center;padding:40px"><p class="muted">Chargement de la commande…</p></div></div></section>`;
+  if(!trackOrder) return `<section><div class="wrap"><div class="card" style="text-align:center;padding:40px">
+    <h2 style="color:var(--bleu)">Commande introuvable</h2>
+    <p class="muted">Cette commande n'a pas été trouvée. Vérifiez le QR code ou contactez DISTRIVIA.</p>
+    <button class="btn" style="margin-top:14px" onclick="go('home')">Retour à l'accueil</button></div></div></section>`;
+  const o = trackOrder;
+  const statusLabels = {pending:"En préparation",delivered:"Livrée",paid:"Livrée & payée",cancelled:"Annulée",confirmed:"Confirmée",new:"Reçue"};
+  const items = (o.items||o.lines||[]);
+  return `<section><div class="wrap" style="max-width:640px">
+    <div class="eyebrow">Suivi de commande</div>
+    <h2 class="title" style="margin-bottom:6px">${esc(o.num||o.ref||"")}</h2>
+    <div class="card" style="padding:22px">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;padding-bottom:12px;margin-bottom:12px">
+        <div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Statut</div>
+          <div style="font-size:18px;font-weight:800;color:var(--bleu)">${statusLabels[o.status]||o.status||"En cours"}</div></div>
+        <div style="text-align:right"><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Date</div>
+          <div style="font-weight:700">${esc((o.date||o.created||"").slice(0,10))}</div></div>
+      </div>
+      ${o.clientName||o.client_name?`<p style="margin-bottom:10px"><b>Client :</b> ${esc(o.clientName||o.client_name)}${o.matricule?" ("+esc(o.matricule)+")":""}</p>`:""}
+      <table style="width:100%;border-collapse:collapse;font-size:14px">
+        <tr style="background:var(--bleu);color:#fff"><th style="padding:8px 10px;text-align:left">Article</th><th style="padding:8px 10px;text-align:right">Qté</th></tr>
+        ${items.map(it=>`<tr><td style="padding:8px 10px;border-bottom:1px solid #eee">${esc(it.name||prodN(it.productId))}</td><td style="padding:8px 10px;text-align:right;border-bottom:1px solid #eee">${it.qty||0}</td></tr>`).join("")}
+      </table>
+      ${o.total?`<div style="text-align:right;margin-top:12px;font-size:17px;font-weight:800;color:var(--bleu)">Total : ${(o.total).toLocaleString("fr-FR").replace(/,/g," ")} F</div>`:""}
+      <div style="margin-top:16px;text-align:center;color:#888;font-size:12px;border-top:1px solid #eee;padding-top:12px">DISTRIVIA · Livraison 48 h sur Dakar · contact@distrivia.sn</div>
+    </div>
+    <div style="text-align:center;margin-top:16px"><button class="btn ghost" onclick="go('home')">Accueil DISTRIVIA</button></div>
+  </div></section>`;
+}
+function prodN(id){ const p=catalogProducts.find(p=>p.name===id||p.id===id); return p?p.name:""; }
+async function loadTrackOrder(num){
+  trackLoading = true;
+  try{
+    await fbReady();
+    const snap = await fdb.collection("distrivia").doc("etat").get();
+    if(snap.exists){
+      const blob = snap.data().blob;
+      if(blob){ const St = JSON.parse(blob);
+        const o = (St.orders||[]).find(x=>x.num===num);
+        if(o){
+          const cli = (St.clients||[]).find(c=>c.id===o.clientId)||{};
+          trackOrder = { num:o.num, status:o.status, date:o.date, delivered:o.delivered,
+            clientName:cli.name, matricule:cli.matricule,
+            items:o.lines.map(l=>({ name:(St.products.find(p=>p.id===l.productId)||{}).name||"Article", qty:l.qty })),
+            total:o.lines.reduce((a,l)=>a+l.qty*l.price,0) };
+        }
+      }
+    }
+  }catch(e){ console.warn("track:", e); }
+  trackLoading = false;
+  if(view==="track") render();
 }
 
 function header(){
@@ -477,34 +563,96 @@ function vHome(){
 }
 
 /* ---------- CATALOG ---------- */
+let catFilter = "Tous";
+let catSearch = "";
 function vCatalog(){
+  // Produits live de Gestion regroupés par famille (sinon fallback FAMILIES)
+  const live = catalogProducts.length>0;
+  const famNames = FAMILIES.map(f=>f.name);
+  const emojiOf = n=>{ const f=FAMILIES.find(f=>f.name===n); return f?f.emoji:"📦"; };
+  let groups = {};
+  if(live){
+    catalogProducts.forEach(p=>{ const fam=p.family||"Autres"; (groups[fam]=groups[fam]||[]).push(p); });
+  } else {
+    FAMILIES.forEach(f=>{ groups[f.name]=f.items.map(([n,d])=>({name:n,desc:d,family:f.name})); });
+  }
+  const allFams = Object.keys(groups);
+  const filters = ["Tous", ...allFams];
+  const q = catSearch.trim().toLowerCase();
+  // applique filtre + recherche
+  const visibleFams = allFams.filter(f=> catFilter==="Tous" || f===catFilter);
+  let cards = "";
+  visibleFams.forEach(fam=>{
+    const items = groups[fam].filter(p=> !q || (p.name||"").toLowerCase().includes(q) || (p.desc||"").toLowerCase().includes(q));
+    if(!items.length) return;
+    cards += `<div class="cat-group">
+      <div class="cat-group-head"><span class="cat-emoji">${emojiOf(fam)}</span><h3>${esc(fam)}</h3><span class="cat-count">${items.length}</span></div>
+      <div class="cat-grid">
+        ${items.map(p=>`<div class="prod-card">
+          <div class="prod-ic">${emojiOf(fam)}</div>
+          <div class="prod-nm">${esc(p.name)}</div>
+          ${p.desc?`<div class="prod-ds">${esc(p.desc)}</div>`:`<div class="prod-ds">Disponible en gros & demi-gros</div>`}
+          <button class="prod-add" onclick="quickOrder('${esc((p.name||'').replace(/'/g,"\\'"))}')">Commander</button>
+        </div>`).join("")}
+      </div></div>`;
+  });
+  if(!cards) cards = `<div class="card" style="text-align:center;padding:40px"><p class="muted">Aucun produit ne correspond à « ${esc(catSearch)} ».</p></div>`;
   return `<section><div class="wrap">
     <div class="eyebrow">Catalogue</div>
-    <h2 class="title">Tous nos produits</h2>
-    <p class="lead">Parcourez les familles. Connectez-vous à votre espace client pour ajouter au panier et commander.</p>
-    <div class="grid g2">
-      ${FAMILIES.map(f=>`<div class="fam">
-        <div class="top"><span class="emoji">${f.emoji}</span><div><h3>${f.name}</h3><span class="tag">${f.tag}</span></div></div>
-        ${f.items.map(([n,d])=>`<div class="prod"><span class="b">▸</span><div><div class="nm">${n}</div><div class="ds">${d}</div></div></div>`).join("")}
-      </div>`).join("")}
+    <h2 class="title">Nos produits</h2>
+    <p class="lead">${live?"Catalogue à jour en temps réel.":"Parcourez nos familles de produits."} Connectez-vous pour commander en quelques clics.</p>
+    <div class="cat-toolbar">
+      <input id="cat-search" class="cat-search" placeholder="🔍 Rechercher un produit…" value="${esc(catSearch)}">
     </div>
+    <div class="cat-filters">
+      ${filters.map(f=>`<button class="cat-chip ${catFilter===f?'on':''}" data-catf="${esc(f)}">${f==="Tous"?"Tous":emojiOf(f)+" "+esc(f)}</button>`).join("")}
+    </div>
+    ${cards}
     <div style="text-align:center; margin-top:30px">
       <button class="btn lg" onclick="go('client-auth')">Créer un compte pour commander</button>
     </div>
   </div></section>`;
 }
+function bindCatalog(){
+  const s=el("cat-search");
+  if(s){ s.oninput=()=>{ catSearch=s.value; const pos=s.selectionStart; rerenderCatalog(); const ns=el("cat-search"); if(ns){ ns.focus(); try{ns.setSelectionRange(pos,pos);}catch(e){} } }; }
+  document.querySelectorAll("[data-catf]").forEach(b=> b.onclick=()=>{ catFilter=b.dataset.catf; rerenderCatalog(); });
+}
+function rerenderCatalog(){ const app=el("app"); if(app){ app.innerHTML=shell(vCatalog()); bind(); } }
+function quickOrder(name){
+  if(!session){ toast("Connectez-vous pour commander"); go("client-auth"); return; }
+  const prod = catalogProducts.find(p=>p.name===name);
+  const family = prod?prod.family:"";
+  const ex=cart.find(l=>l.name===name); if(ex) ex.qty++; else cart.push({name,family,qty:1});
+  toast(name+" ajouté au panier");
+  acctTab="new"; go("client");
+}
+window.quickOrder=quickOrder;
 
 /* ---------- SERVICES ---------- */
 function vServices(){
+  const services = [
+    {e:"🚚",t:"Livraison 48 h",d:"Sur tout Dakar et la petite côte. Suivi de commande par QR code, livraison fiable et ponctuelle.",c:"terra"},
+    {e:"📦",t:"Gros & demi-gros",d:"Du carton à la palette. Prix dégressifs selon les volumes, stock permanent sur les références clés.",c:"bleu"},
+    {e:"📅",t:"Rendez-vous commercial",d:"Planifiez une visite de notre équipe ou un passage à l'entrepôt depuis votre espace client.",c:"vert"},
+    {e:"🤝",t:"Contrats grands comptes",d:"Hôtels, cliniques, chaînes de restauration : conditions annuelles, prix négociés, conformité garantie.",c:"bleu"},
+    {e:"💬",t:"Support & messagerie",d:"Une question, un souci ? Discutez en direct avec notre équipe depuis votre espace, comme sur WhatsApp.",c:"terra"},
+    {e:"🌱",t:"Gamme écologique",d:"Alternatives biodégradables conformes à la loi 2020-04 : fibre de canne, PLA, bambou, kraft.",c:"vert"},
+  ];
+  const col={terra:"var(--terra)",bleu:"var(--bleu)",vert:"#2E6B3E"};
   return `<section><div class="wrap">
     <div class="eyebrow">Nos services</div>
     <h2 class="title">Bien plus qu'un fournisseur</h2>
-    <div class="grid g2" style="margin-top:24px">
-      ${SERVICES.map(s=>`<div class="card"><div class="ico">${s.emoji}</div><h3>${s.t}</h3><p>${s.d}</p></div>`).join("")}
-      <div class="card"><div class="ico">📅</div><h3>Rendez-vous commercial</h3><p>Planifiez une visite de notre équipe ou un passage à l'entrepôt, directement depuis votre espace client.</p></div>
-      <div class="card"><div class="ico">🤝</div><h3>Contrats grands comptes</h3><p>Hôtels, cliniques, chaînes de restauration : conditions annuelles, prix négociés, conformité garantie.</p></div>
-      <div class="card"><div class="ico">💬</div><h3>Réclamations suivies</h3><p>Un souci sur une livraison ? Ouvrez une réclamation depuis votre espace, suivez sa résolution.</p></div>
-      <div class="card"><div class="ico">🌱</div><h3>Gamme écologique</h3><p>Alternatives biodégradables conformes à la loi 2020-04 : fibre de canne, PLA, bambou, kraft.</p></div>
+    <p class="lead">DISTRIVIA combine prix de gros, logistique fiable et accompagnement de proximité.</p>
+    <div class="svc-grid">
+      ${services.map(s=>`<div class="svc-card" style="--svc:${col[s.c]}">
+        <div class="svc-ic">${s.e}</div>
+        <h3>${s.t}</h3>
+        <p>${s.d}</p>
+      </div>`).join("")}
+    </div>
+    <div style="text-align:center;margin-top:34px">
+      <button class="btn lg" onclick="go('client-auth')">Ouvrir mon espace client</button>
     </div>
   </div></section>`;
 }
@@ -613,7 +761,7 @@ async function doSignup(kind){
 /* ---------- CLIENT SPACE ---------- */
 function vClientSpace(){
   if(!session){ go("client-auth"); return ""; }
-  const tabs=[["orders","Mes commandes"],["new","Nouvelle commande"],["appointments","Rendez-vous"],["claims","Réclamations"],["profile","Mon profil"]];
+  const tabs=[["orders","Mes commandes"],["invoices","Mes factures"],["new","Nouvelle commande"],["appointments","Rendez-vous"],["claims","Messages"],["profile","Mon profil"]];
   return `<section><div class="wrap">
     <div class="row" style="justify-content:space-between; align-items:flex-end">
       <div><div class="eyebrow">Espace client</div><h2 class="title">Bonjour, ${esc(session.name)}</h2></div>
@@ -640,8 +788,11 @@ function setTab(t){ acctTab=t; if(view==="client"||view==="supplier") render(); 
 /* ---------- ACCOUNT BODIES (rendered after main render) ---------- */
 async function renderAcctBody(){
   const body=el("acct-body"); if(!body) return;
+  // détache l'écoute messagerie si on quitte l'onglet Messages
+  if(acctTab!=="claims" && _convoUnsub){ try{_convoUnsub();}catch(e){} _convoUnsub=null; }
   if(view==="client"){
     if(acctTab==="orders"){ body.innerHTML=await clientOrdersHTML(); bindOrderDetails(); return; }
+    if(acctTab==="invoices"){ body.innerHTML=await clientInvoicesHTML(); return; }
     if(acctTab==="new") return body.innerHTML=clientNewOrderHTML(), bindCatalogPicker();
     if(acctTab==="appointments") return body.innerHTML=await clientApptHTML(), bindAppt();
     if(acctTab==="claims") return body.innerHTML=await clientClaimsHTML(), bindClaim();
@@ -670,6 +821,40 @@ async function clientOrdersHTML(){
   </table></div>`;
 }
 function statusLabel(s){ return {new:"Reçue",confirmed:"Confirmée",delivered:"Livrée",cancelled:"Annulée",pending:"En attente",resolved:"Résolue"}[s]||s; }
+
+/* ===== Mes factures (lecture depuis Gestion) ===== */
+async function clientInvoicesHTML(){
+  if(!CONFIGURED) return `<div class="card"><p class="muted">Vos factures apparaîtront ici une fois le service en ligne activé.</p></div>`;
+  let orders=[];
+  try{
+    await fbReady();
+    const snap=await fdb.collection("distrivia").doc("etat").get();
+    if(snap.exists){ const St=JSON.parse(snap.data().blob||"{}");
+      // retrouver le client Gestion correspondant (par email ou nom)
+      const myName=(session.name||"").toLowerCase(), myEmail=(session.email||"").toLowerCase();
+      const cli=(St.clients||[]).find(c=> (c.email&&c.email.toLowerCase()===myEmail) || (c.name&&c.name.toLowerCase()===myName));
+      if(cli){
+        const rate = (St.settings&&St.settings.tvaEnabled)?(St.settings.tvaRate||0):0;
+        orders=(St.orders||[]).filter(o=>o.clientId===cli.id && o.invoiceNum && o.status!=="cancelled").map(o=>{
+          const ttc=o.lines.reduce((a,l)=>a+l.qty*l.price,0);
+          const paid=(o.payments||[]).reduce((a,p)=>a+p.amount,0);
+          const due=Math.max(0,ttc-paid);
+          return { num:o.invoiceNum, ref:o.num, date:o.date, ttc, paid, due, st: due<=0?"paid":(paid>0?"partial":"unpaid") };
+        }).sort((a,b)=>(a.num<b.num?1:-1));
+      }
+    }
+  }catch(e){ console.warn("factures:",e); }
+  if(!orders.length) return `<div class="card" style="text-align:center"><p class="muted">Aucune facture pour le moment.</p><p class="muted" style="font-size:13px">Vos factures apparaîtront ici dès qu'elles seront émises par DISTRIVIA.</p></div>`;
+  const totalDue=orders.reduce((a,o)=>a+o.due,0);
+  const fmtF=n=>(Math.round(n)||0).toLocaleString("fr-FR").replace(/,/g," ")+" F";
+  const stBadge={paid:'<span class="badge delivered">Payée</span>',partial:'<span class="badge pending">Partielle</span>',unpaid:'<span class="badge new">À payer</span>'};
+  return `
+  ${totalDue>0?`<div class="card" style="margin-bottom:14px;border-left:4px solid var(--terra)"><b>Solde à régler : ${fmtF(totalDue)}</b><div class="muted" style="font-size:13px;margin-top:4px">Réglez auprès de DISTRIVIA (espèces, Wave, Orange Money). Le statut se met à jour automatiquement après encaissement.</div></div>`:""}
+  <div class="tablewrap"><table>
+    <tr><th>Facture</th><th>Date</th><th class="num">Total</th><th class="num">Payé</th><th class="num">Reste</th><th>Statut</th></tr>
+    ${orders.map(o=>`<tr><td><b>${esc(o.num)}</b><div class="muted" style="font-size:11px">${esc(o.ref)}</div></td><td>${(o.date||"").split("-").reverse().join("/")}</td><td class="num">${fmtF(o.ttc)}</td><td class="num">${fmtF(o.paid)}</td><td class="num">${o.due?'<b style="color:var(--terra)">'+fmtF(o.due)+'</b>':'—'}</td><td>${stBadge[o.st]}</td></tr>`).join("")}
+  </table></div>`;
+}
 function showOrder(id){
   const o=_ordersCache[id]; if(!o) return;
   openModal(`<button class="x" onclick="closeModal()">×</button><h3 style="color:var(--bleu)">Commande ${esc(o.ref)}</h3>
@@ -782,62 +967,95 @@ async function submitAppt(){
 }
 
 /* ----- Client: claims / Supplier: messages ----- */
-let _claimsCache = {};
-async function clientClaimsHTML(){ return claimsHTML("client_id"); }
-async function supplierMsgHTML(){ return claimsHTML("supplier_id","Message à DISTRIVIA"); }
-async function claimsHTML(field, title){
-  const list=await dbList("portal_claims",field,session.id);
-  _claimsCache={}; list.forEach(c=>{ _claimsCache[c.id]=c; });
-  return `<div class="grid g2">
-    <div class="panel" style="margin:0">
-      <h3 style="color:var(--bleu); margin-bottom:10px">${title||"Nouveau message / réclamation"}</h3>
-      ${!title?`<label>Type</label><select id="cl-type"><option>Problème de livraison</option><option>Produit non conforme</option><option>Erreur de facturation</option><option>Réclamation qualité</option><option>Question / autre</option></select>
-      <label>N° de commande concerné (facultatif)</label><input id="cl-ref" placeholder="Ex. WEB-2026-…">`:`<input type="hidden" id="cl-type" value="Message"><input type="hidden" id="cl-ref" value="">`}
-      <label>Message</label><textarea id="cl-msg" placeholder="Décrivez votre demande…"></textarea>
-      <button class="btn full" style="margin-top:14px" onclick="submitClaim('${field}')">Envoyer</button>
-      <div id="cl-fb"></div>
+/* ===== MESSAGERIE façon WhatsApp : UNE conversation par client ===== */
+let _convo = null;          // la conversation de l'utilisateur courant
+let _convoUnsub = null;
+function convoId(){ return (session.kind==="client"?"c_":"s_")+session.id; }
+async function loadConvo(){
+  if(!CONFIGURED){ _convo = demoConvo(); return _convo; }
+  try{
+    await fbReady();
+    const snap = await fdb.collection("portal_threads").doc(convoId()).get();
+    _convo = snap.exists ? snap.data() : null;
+  }catch(e){ console.warn("convo:", e); }
+  return _convo;
+}
+function demoConvo(){ try{ return JSON.parse(localStorage.getItem("distrivia-convo-"+convoId())||"null"); }catch(e){ return null; } }
+function saveDemoConvo(c){ try{ localStorage.setItem("distrivia-convo-"+convoId(), JSON.stringify(c)); }catch(e){} }
+
+async function clientClaimsHTML(){ return chatHTML(); }
+async function supplierMsgHTML(){ return chatHTML(); }
+async function chatHTML(){
+  await loadConvo();
+  const msgs = (_convo && _convo.messages) || [];
+  const bubbles = msgs.length ? msgs.map(m=>{
+    const mine = m.from!=="DISTRIVIA";
+    return `<div style="display:flex;${mine?"justify-content:flex-end":"justify-content:flex-start"};margin:6px 0">
+      <div style="max-width:75%;background:${mine?"var(--bleu)":"#fff"};color:${mine?"#fff":"#1A1A1A"};padding:9px 13px;border-radius:14px;${mine?"border-bottom-right-radius:4px":"border-bottom-left-radius:4px"};box-shadow:0 1px 3px rgba(15,42,74,.12)">
+        <div style="font-size:14px;line-height:1.45;white-space:pre-wrap">${esc(m.text)}</div>
+        <div style="font-size:10px;opacity:.65;text-align:right;margin-top:3px">${fmtTime(m.date)}</div>
+      </div></div>`;
+  }).join("") : `<div style="text-align:center;color:#888;padding:30px 10px;font-size:14px">👋 Démarrez la conversation avec l'équipe DISTRIVIA.<br>Posez vos questions, suivez vos commandes, signalez un souci.</div>`;
+  return `<div class="panel" style="margin:0;padding:0;overflow:hidden">
+    <div style="background:var(--bleu);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:10px">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--terra);display:flex;align-items:center;justify-content:center;font-weight:800">D</div>
+      <div><div style="font-weight:700">DISTRIVIA — Support</div><div style="font-size:11px;opacity:.8">Réponse sous 24h ouvrées</div></div>
     </div>
-    <div>${list.length?`<div class="tablewrap"><table><tr><th>Objet</th><th>Date</th><th>Statut</th></tr>
-      ${list.map(c=>{ const nrep=(c.replies||[]).length; return `<tr style="cursor:pointer" data-viewclaim="${esc(c.id)}"><td>${esc(c.type)}${c.ref?`<div class="muted">${esc(c.ref)}</div>`:""}<div class="muted">${esc((c.message||"").slice(0,55))}${(c.message||"").length>55?"…":""}</div>${nrep?`<div style="color:var(--vert);font-size:12px">💬 ${nrep} réponse(s) — voir</div>`:""}</td><td>${(c.created||"").slice(0,10)}</td><td><span class="badge ${c.status}">${statusLabel(c.status)}</span></td></tr>`;}).join("")}</table></div>`
-      :`<div class="card"><p class="muted">Aucun message pour l'instant.</p></div>`}</div>
+    <div id="chat-scroll" style="background:var(--creme);padding:14px 16px;height:46vh;min-height:280px;overflow-y:auto">${bubbles}</div>
+    <div style="display:flex;gap:8px;padding:12px;border-top:1px solid #eee;background:#fff">
+      <textarea id="chat-input" rows="1" placeholder="Votre message…" style="flex:1;resize:none;border:1px solid #ddd;border-radius:20px;padding:10px 16px;font-family:inherit;font-size:14px"></textarea>
+      <button class="btn" id="chat-send" style="border-radius:20px;padding:10px 20px">Envoyer</button>
+    </div>
   </div>`;
 }
+function fmtTime(iso){ if(!iso) return ""; const d=new Date(iso); if(isNaN(d)) return (iso||"").slice(0,16).replace("T"," ");
+  const today=new Date(); const sameDay=d.toDateString()===today.toDateString();
+  const hh=String(d.getHours()).padStart(2,"0"), mm=String(d.getMinutes()).padStart(2,"0");
+  return sameDay ? `${hh}:${mm}` : `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")} ${hh}:${mm}`; }
 function bindClaim(){
-  document.querySelectorAll("[data-viewclaim]").forEach(r=> r.onclick = ()=> showClaim(r.dataset.viewclaim));
+  const scroll=el("chat-scroll"); if(scroll) scroll.scrollTop=scroll.scrollHeight;
+  const send=el("chat-send"), input=el("chat-input");
+  if(send) send.onclick = sendChat;
+  if(input){ input.onkeydown = e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendChat(); } }; }
+  // écoute temps réel des réponses DISTRIVIA
+  if(CONFIGURED && !_convoUnsub){
+    try{ _convoUnsub = fdb.collection("portal_threads").doc(convoId()).onSnapshot(snap=>{
+      if(snap.exists){ const data=snap.data();
+        const old=(_convo&&_convo.messages||[]).length; _convo=data;
+        if((data.messages||[]).length!==old && (view==="client"||view==="supplier") && acctTab==="claims"){
+          const sc=el("chat-scroll"); if(sc){ sc.innerHTML=chatBubbles(); sc.scrollTop=sc.scrollHeight; }
+        }
+      }
+    }); }catch(e){}
+  }
 }
-function showClaim(id){
-  const c=_claimsCache[id]; if(!c) return;
-  const replies=c.replies||[];
-  const thread=`
-    <div style="background:var(--creme);border-radius:8px;padding:10px;margin:4px 0">
-      <div style="font-size:11px;color:#888">Vous · ${(c.created||"").slice(0,16).replace("T"," ")}</div>
-      <div style="margin-top:3px">${esc(c.message||"")}</div></div>
-    ${replies.map(r=>`<div style="background:${r.from==="DISTRIVIA"?"var(--bleu)":"var(--creme)"};color:${r.from==="DISTRIVIA"?"#fff":"#1A1A1A"};border-radius:8px;padding:10px;margin:4px 0;${r.from==="DISTRIVIA"?"margin-right:24px":"margin-left:24px"}">
-      <div style="font-size:11px;opacity:.8">${r.from==="DISTRIVIA"?"DISTRIVIA":"Vous"} · ${(r.date||"").slice(0,16).replace("T"," ")}</div>
-      <div style="margin-top:3px">${esc(r.text)}</div></div>`).join("")}`;
-  openModal(`<button class="x" onclick="closeModal()">×</button><h3 style="color:var(--bleu)">${esc(c.type||"Message")}</h3>
-    <p class="muted">${c.ref?"Réf. "+esc(c.ref)+" · ":""}<span class="badge ${c.status}">${statusLabel(c.status)}</span></p>
-    <div style="max-height:45vh;overflow:auto;margin:12px 0">${thread}</div>
-    ${replies.some(r=>r.from==="DISTRIVIA")?"":`<p class="muted" style="font-size:13px">Notre équipe vous répondra ici. Vous recevrez la réponse dans cet espace.</p>`}
-    <label>Ajouter un message</label><textarea id="cl-more" rows="2" placeholder="Votre réponse…"></textarea>
-    <button class="btn full" style="margin-top:10px" onclick="replyClaim('${esc(id)}')">Envoyer</button>`);
+function chatBubbles(){
+  const msgs=(_convo&&_convo.messages)||[];
+  if(!msgs.length) return `<div style="text-align:center;color:#888;padding:30px 10px;font-size:14px">👋 Démarrez la conversation avec l'équipe DISTRIVIA.</div>`;
+  return msgs.map(m=>{ const mine=m.from!=="DISTRIVIA";
+    return `<div style="display:flex;${mine?"justify-content:flex-end":"justify-content:flex-start"};margin:6px 0">
+      <div style="max-width:75%;background:${mine?"var(--bleu)":"#fff"};color:${mine?"#fff":"#1A1A1A"};padding:9px 13px;border-radius:14px;${mine?"border-bottom-right-radius:4px":"border-bottom-left-radius:4px"};box-shadow:0 1px 3px rgba(15,42,74,.12)">
+        <div style="font-size:14px;line-height:1.45;white-space:pre-wrap">${esc(m.text)}</div>
+        <div style="font-size:10px;opacity:.65;text-align:right;margin-top:3px">${fmtTime(m.date)}</div></div></div>`; }).join("");
 }
-async function replyClaim(id){
-  const c=_claimsCache[id]; if(!c) return;
-  const t=el("cl-more").value.trim(); if(!t) return toast("Écrivez un message");
-  const replies=[...(c.replies||[]), { from:"client", text:t, date:nowISO() }];
+async function sendChat(){
+  const input=el("chat-input"); const t=(input.value||"").trim(); if(!t) return;
+  input.value="";
+  const msg={ from:session.kind==="client"?"client":"supplier", text:t, date:nowISO() };
+  // construit/complète la conversation
+  if(!_convo){ _convo = { id:convoId(), kind:session.kind, party_id:session.id, party_name:session.name,
+    party_email:session.email||"", messages:[], status:"open", created:nowISO() }; }
+  _convo.messages = [...(_convo.messages||[]), msg];
+  _convo.lastFrom = msg.from; _convo.lastText = t; _convo.updated = nowISO(); _convo.status="open";
+  _convo.unreadForAdmin = true;
+  // affichage immédiat (optimiste)
+  const sc=el("chat-scroll"); if(sc){ sc.innerHTML=chatBubbles(); sc.scrollTop=sc.scrollHeight; }
   try{
-    if(CONFIGURED){ await fbReady(); await fdb.collection("portal_claims").doc(id).update({replies, status:"pending"}); }
-    c.replies=replies; c.status="pending"; toast("Message envoyé ✓"); showClaim(id);
-  }catch(e){ toast("Erreur d'envoi"); }
+    if(CONFIGURED){ await fbReady(); await fdb.collection("portal_threads").doc(convoId()).set(_convo); }
+    else saveDemoConvo(_convo);
+  }catch(e){ toast("Erreur d'envoi — réessayez"); }
 }
-window.showClaim=showClaim; window.replyClaim=replyClaim;
-async function submitClaim(field){
-  const msg=el("cl-msg").value.trim(); if(!msg){ el("cl-fb").innerHTML=`<div class="err">Le message est requis.</div>`; return; }
-  const row={ id:uid(), [field]:session.id, author_name:session.name, type:el("cl-type").value, ref:el("cl-ref").value.trim(), message:msg, status:"pending", created:nowISO() };
-  try{ await dbInsert("portal_claims", row); render(); toast("Message envoyé ✓"); }
-  catch(e){ el("cl-fb").innerHTML=`<div class="err">${esc(e.message)}</div>`; }
-}
+window.sendChat=sendChat;
 
 /* ----- Supplier: quotes ----- */
 async function supplierQuotesHTML(){
@@ -889,14 +1107,14 @@ function profileHTML(){
 function openModal(html){ el("modal").innerHTML=`<div class="modalbg" id="mbg"><div class="modal">${html}</div></div>`; el("mbg").onclick=e=>{ if(e.target.id==="mbg") closeModal(); }; }
 function closeModal(){ el("modal").innerHTML=""; }
 function go(v){ view=v; if(v==="client-auth"||v==="supplier-auth") authMode="login"; render(); if(v==="client-auth"||v==="supplier-auth") renderAuthBody(); if(v==="client"||v==="supplier") renderAcctBody(); }
-function bind(){ if(view==="client-auth"||view==="supplier-auth") renderAuthBody(); if(view==="client"||view==="supplier") renderAcctBody(); }
+function bind(){ if(view==="client-auth"||view==="supplier-auth") renderAuthBody(); if(view==="client"||view==="supplier") renderAcctBody(); if(view==="catalog") bindCatalog(); }
 function saveSession(){ try{ localStorage.setItem("distrivia-portail-session", JSON.stringify(session)); }catch(e){} }
 function logout(){ if(CONFIGURED&&firebase.auth){ try{ /* on garde la session anonyme Firebase */ }catch(e){} } session=null; try{ localStorage.removeItem("distrivia-portail-session"); }catch(e){} cart=[]; go("home"); toast("Vous êtes déconnecté."); }
 
 /* expose */
 window.go=go; window.setTab=setTab; window.switchAuth=switchAuth; window.doLogin=doLogin; window.doSignup=doSignup;
 window.submitOrder=submitOrder; window.cartQty=cartQty; window.cartRemove=cartRemove; window.showOrder=showOrder;
-window.submitAppt=submitAppt; window.submitClaim=submitClaim; window.submitQuote=submitQuote; window.sendContact=sendContact;
+window.submitAppt=submitAppt; window.submitQuote=submitQuote; window.sendContact=sendContact;
 window.openModal=openModal; window.closeModal=closeModal; window.logout=logout;
 
 /* ---------- Boot ---------- */
@@ -905,9 +1123,19 @@ window.openModal=openModal; window.closeModal=closeModal; window.logout=logout;
   // Catalogue depuis le cache : disponible instantanément, avant même Firebase
   try{ const c=localStorage.getItem("distrivia-portail-catalog"); if(c) catalogProducts=JSON.parse(c); }catch(e){}
   try{ const a=localStorage.getItem("distrivia-portail-anns"); if(a) announcements=JSON.parse(a); }catch(e){}
-  if(session){ view=session.kind; acctTab = session.kind==="client"?"orders":"quotes"; }
+  // QR code commande : ?cmd=CMD-XXXX → page de suivi
+  let cmdParam = null;
+  try{ cmdParam = new URLSearchParams(location.search).get("cmd"); }catch(e){}
+  if(cmdParam){ view="track"; }
+  else if(session){ view=session.kind; acctTab = session.kind==="client"?"orders":"quotes"; }
   render();
-  if(CONFIGURED){ try{ await loadCatalog(); loadAnnouncements(); if(view==="client"&&acctTab==="new") renderAcctBody(); }catch(e){ console.warn("Firebase init:",e); } }
+  if(CONFIGURED){
+    try{
+      if(cmdParam){ loadTrackOrder(cmdParam); }
+      await loadCatalog(); loadAnnouncements();
+      if(view==="client"&&acctTab==="new") renderAcctBody();
+    }catch(e){ console.warn("Firebase init:",e); }
+  }
 })();
 </script>
 </body>
