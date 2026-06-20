@@ -98,12 +98,20 @@
   .cat-emoji{font-size:26px;}
   .cat-count{margin-left:auto; background:var(--creme); color:var(--gris); font-size:12px; font-weight:700; padding:3px 11px; border-radius:20px;}
   .cat-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px;}
-  .prod-card{background:#fff; border-radius:14px; padding:18px; box-shadow:var(--ombre); display:flex; flex-direction:column; transition:transform .15s, box-shadow .15s; border:1px solid #F0EBDE;}
+  .prod-card{background:#fff; border-radius:14px; padding:14px; box-shadow:var(--ombre); display:flex; flex-direction:column; transition:transform .15s, box-shadow .15s; border:1px solid #F0EBDE;}
   .prod-card:hover{transform:translateY(-3px); box-shadow:0 8px 24px rgba(15,42,74,.14);}
+  .prod-photo{position:relative; width:100%; aspect-ratio:1/1; border-radius:10px; overflow:hidden; background:var(--creme); display:flex; align-items:center; justify-content:center; margin-bottom:10px;}
+  .prod-photo img{width:100%; height:100%; object-fit:cover;}
+  .prod-photo-ph{font-size:46px; opacity:.5;}
+  .prod-rupture{position:absolute; top:8px; left:8px; background:var(--rouge,#A33B3B); color:#fff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:20px;}
+  .prod-promo-badge{position:absolute; top:8px; right:8px; background:#2E6B3E; color:#fff; font-size:12px; font-weight:800; padding:4px 9px; border-radius:20px; box-shadow:0 2px 6px rgba(0,0,0,.2);}
+  .prod-old{font-size:12px; font-weight:500; color:#999; text-decoration:line-through; margin-left:4px;}
   .prod-ic{width:48px; height:48px; border-radius:12px; background:var(--creme); display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:12px;}
-  .prod-nm{font-weight:700; color:var(--anthra); font-size:15px; margin-bottom:4px;}
+  .prod-nm{font-weight:700; color:var(--anthra); font-size:14px; margin-bottom:4px; line-height:1.3;}
+  .prod-price{font-size:18px; font-weight:800; color:var(--terra); margin-bottom:10px;}
+  .prod-unit{font-size:11px; font-weight:500; color:var(--gris);}
   .prod-ds{font-size:12.5px; color:var(--gris); flex:1; margin-bottom:14px; line-height:1.45;}
-  .prod-add{background:var(--bleu); color:#fff; border:none; border-radius:9px; padding:9px; font-weight:700; font-size:13px; cursor:pointer; transition:background .15s;}
+  .prod-add{background:var(--bleu); color:#fff; border:none; border-radius:9px; padding:9px; font-weight:700; font-size:13px; cursor:pointer; transition:background .15s; margin-top:auto;}
   .prod-add:hover{background:var(--terra);}
 
   /* SERVICES v2 */
@@ -263,6 +271,8 @@ function demoSave(d){ LS.save(d); }
 
 const el = id => document.getElementById(id);
 const esc = s => String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// Formate un prix en FCFA avec un espace normal (évite l'espace insécable de toLocaleString)
+const money = n => (Math.round(n)||0).toLocaleString("fr-FR").replace(/[\s\u202f\u00a0]/g," ")+" F";
 const fmt = n => (Math.round(n)||0).toLocaleString("fr-FR")+" F";
 const today = () => new Date().toISOString().slice(0,10);
 const nowISO = () => new Date().toISOString();
@@ -357,7 +367,17 @@ async function loadCatalog(force){
       const blob = snap.data().blob;
       if(blob){ const S = JSON.parse(blob);
         if(S.products && S.products.length){
-          catalogProducts = S.products.map(p=>({ name:p.name, family:p.family, price:p.price }));
+          const promos = (S.promos||[]).filter(pr=>pr.active!==false && (!pr.expire || pr.expire>=new Date().toISOString().slice(0,10)));
+          catalogProducts = S.products.map(p=>{
+            // trouver la meilleure promo applicable
+            let bestPct=0;
+            promos.forEach(pr=>{
+              const ok = pr.target==="all" || (pr.target.startsWith("fam:")&&pr.target.slice(4)===p.family) || (pr.target.startsWith("prod:")&&+pr.target.slice(5)===p.id);
+              if(ok && pr.pct>bestPct) bestPct=pr.pct;
+            });
+            const promoPrice = bestPct? Math.round(p.price*(1-bestPct/100)) : null;
+            return { name:p.name, family:p.family, price:p.price, img:p.img||null, stock:p.stock, promoPct:bestPct||null, promoPrice };
+          });
           try{ localStorage.setItem("distrivia-portail-catalog", JSON.stringify(catalogProducts)); }catch(e){}
         }
       }
@@ -445,7 +465,7 @@ function vTrack(){
         <tr style="background:var(--bleu);color:#fff"><th style="padding:8px 10px;text-align:left">Article</th><th style="padding:8px 10px;text-align:right">Qté</th></tr>
         ${items.map(it=>`<tr><td style="padding:8px 10px;border-bottom:1px solid #eee">${esc(it.name||prodN(it.productId))}</td><td style="padding:8px 10px;text-align:right;border-bottom:1px solid #eee">${it.qty||0}</td></tr>`).join("")}
       </table>
-      ${o.total?`<div style="text-align:right;margin-top:12px;font-size:17px;font-weight:800;color:var(--bleu)">Total : ${(o.total).toLocaleString("fr-FR").replace(/,/g," ")} F</div>`:""}
+      ${o.total?`<div style="text-align:right;margin-top:12px;font-size:17px;font-weight:800;color:var(--bleu)">Total : ${money(o.total)}</div>`:""}
       <div style="margin-top:16px;text-align:center;color:#888;font-size:12px;border-top:1px solid #eee;padding-top:12px">DISTRIVIA · Livraison 48 h sur Dakar · contact@distrivia.sn</div>
     </div>
     <div style="text-align:center;margin-top:16px"><button class="btn ghost" onclick="go('home')">Accueil DISTRIVIA</button></div>
@@ -588,12 +608,19 @@ function vCatalog(){
     cards += `<div class="cat-group">
       <div class="cat-group-head"><span class="cat-emoji">${emojiOf(fam)}</span><h3>${esc(fam)}</h3><span class="cat-count">${items.length}</span></div>
       <div class="cat-grid">
-        ${items.map(p=>`<div class="prod-card">
-          <div class="prod-ic">${emojiOf(fam)}</div>
+        ${items.map(p=>{
+          const prix = p.price ? money(p.price) : "";
+          const promo = p.promoPrice ? money(p.promoPrice) : "";
+          const rupture = (p.stock!==undefined && p.stock<=0);
+          return `<div class="prod-card">
+          <div class="prod-photo">${p.img?`<img src="${p.img}" alt="${esc(p.name)}">`:`<span class="prod-photo-ph">${emojiOf(fam)}</span>`}${p.promoPct?`<span class="prod-promo-badge">−${p.promoPct}%</span>`:""}${rupture?'<span class="prod-rupture">Rupture</span>':''}</div>
           <div class="prod-nm">${esc(p.name)}</div>
-          ${p.desc?`<div class="prod-ds">${esc(p.desc)}</div>`:`<div class="prod-ds">Disponible en gros & demi-gros</div>`}
-          <button class="prod-add" onclick="quickOrder('${esc((p.name||'').replace(/'/g,"\\'"))}')">Commander</button>
-        </div>`).join("")}
+          ${prix?(p.promoPrice
+              ? `<div class="prod-price">${promo}<span class="prod-old"> ${prix}</span><span class="prod-unit"> / carton</span></div>`
+              : `<div class="prod-price">${prix}<span class="prod-unit"> / carton</span></div>`)
+            :`<div class="prod-ds">Prix sur demande</div>`}
+          <button class="prod-add" ${rupture?'disabled style="opacity:.5;cursor:not-allowed"':''} onclick="quickOrder('${esc((p.name||'').replace(/'/g,"\\'"))}')">${rupture?'Indisponible':'Commander'}</button>
+        </div>`;}).join("")}
       </div></div>`;
   });
   if(!cards) cards = `<div class="card" style="text-align:center;padding:40px"><p class="muted">Aucun produit ne correspond à « ${esc(catSearch)} ».</p></div>`;
@@ -704,7 +731,30 @@ function vAuth(kind){
   </div></section>`;
 }
 let authMode="login";
-function switchAuth(m){ authMode=m; el("tab-login").classList.toggle("active",m==="login"); el("tab-signup").classList.toggle("active",m==="signup"); renderAuthBody(); }
+function switchAuth(m){ authMode=m; const lt=el("tab-login"),st=el("tab-signup"); if(lt)lt.classList.toggle("active",m==="login"); if(st)st.classList.toggle("active",m==="signup"); renderAuthBody(); }
+async function doReset(kind){
+  const email=el("a-email").value.trim().toLowerCase(), phone=el("a-phone").value.trim(), np=el("a-newpass").value;
+  if(!email||!phone||!np){ el("a-fb").innerHTML=`<div class="err">Tous les champs sont requis.</div>`; return; }
+  if(np.length<6){ el("a-fb").innerHTML=`<div class="err">Le mot de passe doit faire au moins 6 caractères.</div>`; return; }
+  el("a-fb").innerHTML=`<p class="muted" style="margin-top:8px">Vérification…</p>`;
+  const table = kind==="client" ? "portal_clients" : "portal_suppliers";
+  const onlyDigits = s=>(s||"").replace(/[^\d]/g,"");
+  try{
+    if(!CONFIGURED){ el("a-fb").innerHTML=`<div class="err">Service hors-ligne. Contactez DISTRIVIA.</div>`; return; }
+    await fbReady();
+    const snap = await fdb.collection(table).where("email","==",email).limit(1).get();
+    if(snap.empty){ el("a-fb").innerHTML=`<div class="err">Aucun compte avec cet email.</div>`; return; }
+    const doc=snap.docs[0], data=doc.data();
+    // vérifie le téléphone (comparaison sur les chiffres uniquement)
+    const savedPhone = onlyDigits(data.phone);
+    if(!savedPhone || onlyDigits(phone)!==savedPhone){ el("a-fb").innerHTML=`<div class="err">Le téléphone ne correspond pas à ce compte. Contactez DISTRIVIA si besoin.</div>`; return; }
+    const newHash = await sha256(email+"|"+np);
+    await fdb.collection(table).doc(doc.id).update({ hash:newHash });
+    el("a-fb").innerHTML=`<div class="ok">Mot de passe réinitialisé ✓ Vous pouvez vous connecter.</div>`;
+    setTimeout(()=>switchAuth("login"), 1500);
+  }catch(e){ el("a-fb").innerHTML=`<div class="err">${esc(e.message||"Erreur")}</div>`; }
+}
+window.doReset=doReset;
 function renderAuthBody(){
   const kind = view==="client-auth"?"client":"supplier";
   const isClient = kind==="client";
@@ -713,6 +763,15 @@ function renderAuthBody(){
     b.innerHTML=`<label>Email</label><input id="a-email" type="email" autocomplete="username">
       <label>Mot de passe</label><input id="a-pass" type="password" autocomplete="current-password">
       <button class="btn full" style="margin-top:18px" onclick="doLogin('${kind}')">Se connecter</button>
+      <div style="text-align:center;margin-top:10px"><a href="#" onclick="switchAuth('forgot');return false" style="color:var(--terra);font-size:13px;text-decoration:none">Mot de passe oublié ?</a></div>
+      <div id="a-fb"></div>`;
+  } else if(authMode==="forgot"){
+    b.innerHTML=`<p class="muted" style="margin-bottom:6px">Pour réinitialiser votre mot de passe, confirmez votre email et le téléphone associé à votre compte.</p>
+      <label>Email du compte</label><input id="a-email" type="email" autocomplete="username">
+      <label>Téléphone enregistré</label><input id="a-phone" placeholder="+221 77 …">
+      <label>Nouveau mot de passe</label><input id="a-newpass" type="password" placeholder="min. 6 caractères">
+      <button class="btn full" style="margin-top:18px" onclick="doReset('${kind}')">Réinitialiser</button>
+      <div style="text-align:center;margin-top:10px"><a href="#" onclick="switchAuth('login');return false" style="color:var(--gris);font-size:13px;text-decoration:none">← Retour à la connexion</a></div>
       <div id="a-fb"></div>`;
   } else {
     b.innerHTML=`<label>${isClient?"Nom / établissement":"Nom de l'entreprise"}</label><input id="a-name" placeholder="${isClient?"Ex. Restaurant Teranga":"Ex. Shenzhen Pack Co."}">
@@ -846,7 +905,7 @@ async function clientInvoicesHTML(){
   }catch(e){ console.warn("factures:",e); }
   if(!orders.length) return `<div class="card" style="text-align:center"><p class="muted">Aucune facture pour le moment.</p><p class="muted" style="font-size:13px">Vos factures apparaîtront ici dès qu'elles seront émises par DISTRIVIA.</p></div>`;
   const totalDue=orders.reduce((a,o)=>a+o.due,0);
-  const fmtF=n=>(Math.round(n)||0).toLocaleString("fr-FR").replace(/,/g," ")+" F";
+  const fmtF=money;
   const stBadge={paid:'<span class="badge delivered">Payée</span>',partial:'<span class="badge pending">Partielle</span>',unpaid:'<span class="badge new">À payer</span>'};
   return `
   ${totalDue>0?`<div class="card" style="margin-bottom:14px;border-left:4px solid var(--terra)"><b>Solde à régler : ${fmtF(totalDue)}</b><div class="muted" style="font-size:13px;margin-top:4px">Réglez auprès de DISTRIVIA (espèces, Wave, Orange Money). Le statut se met à jour automatiquement après encaissement.</div></div>`:""}
