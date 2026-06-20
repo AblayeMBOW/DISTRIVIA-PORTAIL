@@ -31,6 +31,8 @@
   .navlinks button.active{color:#fff; background:var(--bleu2);}
   .navlinks .cta{background:var(--terra); color:#fff;}
   .navlinks .cta:hover{background:var(--terra2);}
+  .langsel{background:rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.2); border-radius:7px; padding:7px 8px; font-size:13px; font-weight:600; cursor:pointer;}
+  .langsel option{color:#1A1A1A;}
 
   /* HERO */
   .hero{background:linear-gradient(160deg, var(--bleu) 0%, var(--bleu2) 100%); color:#fff; padding:64px 0 72px; position:relative; overflow:hidden;}
@@ -255,6 +257,94 @@ let cart = [];              // [{name, family, qty, note}]
 let catalogProducts = [];   // produits venant de Gestion/Supabase (sinon FAMILIES)
 let announcements = [];     // annonces publiées depuis Gestion (promos, infos)
 let modalContent = null;
+let lang = (function(){ try{ return localStorage.getItem("distrivia-lang")||"fr"; }catch(e){ return "fr"; } })();
+const LANGS = { fr:"Français", en:"English", zh:"中文", es:"Español" };
+const I18N = {
+  // Navigation
+  nav_home:{fr:"Accueil",en:"Home",zh:"首页",es:"Inicio"},
+  nav_catalog:{fr:"Catalogue",en:"Catalog",zh:"产品目录",es:"Catálogo"},
+  nav_services:{fr:"Services",en:"Services",zh:"服务",es:"Servicios"},
+  nav_contact:{fr:"Contact",en:"Contact",zh:"联系",es:"Contacto"},
+  nav_myspace:{fr:"Mon espace",en:"My account",zh:"我的账户",es:"Mi espacio"},
+  nav_logout:{fr:"Déconnexion",en:"Log out",zh:"退出",es:"Cerrar sesión"},
+  nav_client:{fr:"Espace client",en:"Client area",zh:"客户专区",es:"Área cliente"},
+  nav_supplier:{fr:"Espace fournisseur",en:"Supplier area",zh:"供应商专区",es:"Área proveedor"},
+  // Onglets espace client
+  tab_orders:{fr:"Mes commandes",en:"My orders",zh:"我的订单",es:"Mis pedidos"},
+  tab_invoices:{fr:"Mes factures",en:"My invoices",zh:"我的发票",es:"Mis facturas"},
+  tab_new:{fr:"Nouvelle commande",en:"New order",zh:"新订单",es:"Nuevo pedido"},
+  tab_appointments:{fr:"Rendez-vous",en:"Appointments",zh:"预约",es:"Citas"},
+  tab_messages:{fr:"Messages",en:"Messages",zh:"消息",es:"Mensajes"},
+  tab_profile:{fr:"Mon profil",en:"My profile",zh:"我的资料",es:"Mi perfil"},
+  // Catalogue
+  cat_eyebrow:{fr:"Catalogue",en:"Catalog",zh:"产品目录",es:"Catálogo"},
+  cat_title:{fr:"Nos produits",en:"Our products",zh:"我们的产品",es:"Nuestros productos"},
+  cat_lead_live:{fr:"Catalogue à jour en temps réel.",en:"Catalog updated in real time.",zh:"目录实时更新。",es:"Catálogo actualizado en tiempo real."},
+  cat_lead_static:{fr:"Parcourez nos familles de produits.",en:"Browse our product families.",zh:"浏览我们的产品系列。",es:"Explore nuestras familias de productos."},
+  cat_lead2:{fr:"Connectez-vous pour commander en quelques clics.",en:"Sign in to order in a few clicks.",zh:"登录即可轻松下单。",es:"Inicie sesión para pedir en pocos clics."},
+  cat_search:{fr:"🔍 Rechercher un produit…",en:"🔍 Search a product…",zh:"🔍 搜索产品…",es:"🔍 Buscar un producto…"},
+  cat_all:{fr:"Tous",en:"All",zh:"全部",es:"Todos"},
+  cat_order_btn:{fr:"Commander",en:"Order",zh:"下单",es:"Pedir"},
+  cat_unavailable:{fr:"Indisponible",en:"Out of stock",zh:"缺货",es:"No disponible"},
+  cat_rupture:{fr:"Rupture",en:"Sold out",zh:"售罄",es:"Agotado"},
+  cat_price_demand:{fr:"Prix sur demande",en:"Price on request",zh:"价格面议",es:"Precio a consultar"},
+  cat_per_carton:{fr:" / carton",en:" / box",zh:" / 箱",es:" / caja"},
+  cat_create_account:{fr:"Créer un compte pour commander",en:"Create an account to order",zh:"创建账户下单",es:"Crear cuenta para pedir"},
+  cat_no_match:{fr:"Aucun produit ne correspond à",en:"No product matches",zh:"没有匹配的产品",es:"Ningún producto coincide con"},
+  // Panier / commande
+  cart_title:{fr:"🛒 Mon panier",en:"🛒 My cart",zh:"🛒 购物车",es:"🛒 Mi carrito"},
+  cart_empty:{fr:"Votre panier est vide. Ajoutez des produits depuis la liste.",en:"Your cart is empty. Add products from the list.",zh:"购物车为空，请从列表添加产品。",es:"Su carrito está vacío. Añada productos desde la lista."},
+  choose_products:{fr:"Choisissez vos produits",en:"Choose your products",zh:"选择您的产品",es:"Elija sus productos"},
+  choose_hint:{fr:"Cliquez pour ajouter au panier. Les prix vous sont confirmés à la validation.",en:"Click to add to cart. Prices are confirmed at checkout.",zh:"点击加入购物车。价格将在确认时告知。",es:"Haga clic para añadir al carrito. Los precios se confirman al validar."},
+  delivery_mode:{fr:"Mode de réception",en:"Delivery method",zh:"收货方式",es:"Modo de recepción"},
+  delivery_home:{fr:"Livraison (48 h sur Dakar)",en:"Delivery (48 h in Dakar)",zh:"送货（达喀尔48小时）",es:"Entrega (48 h en Dakar)"},
+  delivery_pickup:{fr:"Retrait à l'entrepôt",en:"Pickup at warehouse",zh:"仓库自提",es:"Recogida en almacén"},
+  delivery_zone:{fr:"Zone / adresse de livraison",en:"Delivery area / address",zh:"送货区域 / 地址",es:"Zona / dirección de entrega"},
+  delivery_zone_ph:{fr:"Ex. Plateau, près de…",en:"E.g. Plateau, near…",zh:"例如：Plateau 附近…",es:"Ej. Plateau, cerca de…"},
+  phone_label:{fr:"Téléphone (WhatsApp)",en:"Phone (WhatsApp)",zh:"电话（WhatsApp）",es:"Teléfono (WhatsApp)"},
+  note_label:{fr:"Note (facultatif)",en:"Note (optional)",zh:"备注（可选）",es:"Nota (opcional)"},
+  note_ph:{fr:"Précisions sur votre commande…",en:"Details about your order…",zh:"关于您订单的说明…",es:"Detalles sobre su pedido…"},
+  send_order:{fr:"Envoyer la commande",en:"Send order",zh:"提交订单",es:"Enviar pedido"},
+  order_confirm_note:{fr:"Un conseiller confirme votre commande et les prix sous 24 h.",en:"An advisor confirms your order and prices within 24 h.",zh:"顾问将在24小时内确认您的订单和价格。",es:"Un asesor confirma su pedido y los precios en 24 h."},
+  // Messages
+  chat_header:{fr:"DISTRIVIA — Support",en:"DISTRIVIA — Support",zh:"DISTRIVIA — 客服",es:"DISTRIVIA — Soporte"},
+  chat_reply_time:{fr:"Réponse sous 24h ouvrées",en:"Reply within 24 business hours",zh:"24个工作小时内回复",es:"Respuesta en 24 h hábiles"},
+  chat_start:{fr:"👋 Démarrez la conversation avec l'équipe DISTRIVIA.",en:"👋 Start the conversation with the DISTRIVIA team.",zh:"👋 与 DISTRIVIA 团队开始对话。",es:"👋 Inicie la conversación con el equipo DISTRIVIA."},
+  chat_start2:{fr:"Posez vos questions, suivez vos commandes, signalez un souci.",en:"Ask questions, track your orders, report an issue.",zh:"提问、跟踪订单、反馈问题。",es:"Haga preguntas, siga sus pedidos, reporte un problema."},
+  chat_input_ph:{fr:"Votre message…",en:"Your message…",zh:"您的消息…",es:"Su mensaje…"},
+  send:{fr:"Envoyer",en:"Send",zh:"发送",es:"Enviar"},
+  // Factures client
+  inv_none:{fr:"Aucune facture pour le moment.",en:"No invoices yet.",zh:"暂无发票。",es:"Aún no hay facturas."},
+  inv_none2:{fr:"Vos factures apparaîtront ici dès qu'elles seront émises par DISTRIVIA.",en:"Your invoices will appear here once issued by DISTRIVIA.",zh:"DISTRIVIA 开具发票后将显示在此处。",es:"Sus facturas aparecerán aquí cuando DISTRIVIA las emita."},
+  inv_balance:{fr:"Solde à régler",en:"Balance due",zh:"应付余额",es:"Saldo a pagar"},
+  inv_pay_hint:{fr:"Réglez auprès de DISTRIVIA (espèces, Wave, Orange Money). Le statut se met à jour automatiquement après encaissement.",en:"Pay DISTRIVIA (cash, Wave, Orange Money). Status updates automatically after payment.",zh:"向 DISTRIVIA 付款（现金、Wave、Orange Money）。收款后状态自动更新。",es:"Pague a DISTRIVIA (efectivo, Wave, Orange Money). El estado se actualiza tras el cobro."},
+  inv_col_invoice:{fr:"Facture",en:"Invoice",zh:"发票",es:"Factura"},
+  inv_col_date:{fr:"Date",en:"Date",zh:"日期",es:"Fecha"},
+  inv_col_total:{fr:"Total",en:"Total",zh:"总计",es:"Total"},
+  inv_col_paid:{fr:"Payé",en:"Paid",zh:"已付",es:"Pagado"},
+  inv_col_left:{fr:"Reste",en:"Left",zh:"剩余",es:"Resta"},
+  inv_col_status:{fr:"Statut",en:"Status",zh:"状态",es:"Estado"},
+  inv_print:{fr:"Imprimer / PDF",en:"Print / PDF",zh:"打印 / PDF",es:"Imprimir / PDF"},
+  st_paid:{fr:"Payée",en:"Paid",zh:"已付",es:"Pagada"},
+  st_partial:{fr:"Partielle",en:"Partial",zh:"部分",es:"Parcial"},
+  st_topay:{fr:"À payer",en:"To pay",zh:"待付",es:"Por pagar"},
+  // Auth
+  auth_login:{fr:"Se connecter",en:"Log in",zh:"登录",es:"Iniciar sesión"},
+  auth_signup:{fr:"Créer un compte",en:"Sign up",zh:"注册",es:"Crear cuenta"},
+  auth_email:{fr:"Email",en:"Email",zh:"邮箱",es:"Correo"},
+  auth_pass:{fr:"Mot de passe",en:"Password",zh:"密码",es:"Contraseña"},
+  auth_forgot:{fr:"Mot de passe oublié ?",en:"Forgot password?",zh:"忘记密码？",es:"¿Olvidó su contraseña?"},
+  auth_reset_intro:{fr:"Pour réinitialiser votre mot de passe, confirmez votre email et le téléphone associé à votre compte.",en:"To reset your password, confirm your email and the phone linked to your account.",zh:"要重置密码，请确认您的邮箱和账户绑定的电话。",es:"Para restablecer su contraseña, confirme su correo y el teléfono asociado a su cuenta."},
+  auth_phone_saved:{fr:"Téléphone enregistré",en:"Registered phone",zh:"注册电话",es:"Teléfono registrado"},
+  auth_newpass:{fr:"Nouveau mot de passe",en:"New password",zh:"新密码",es:"Nueva contraseña"},
+  auth_reset_btn:{fr:"Réinitialiser",en:"Reset",zh:"重置",es:"Restablecer"},
+  auth_back_login:{fr:"← Retour à la connexion",en:"← Back to login",zh:"← 返回登录",es:"← Volver al inicio"},
+  // Divers
+  loading:{fr:"Chargement…",en:"Loading…",zh:"加载中…",es:"Cargando…"},
+};
+function t(key){ const e=I18N[key]; if(!e) return key; return e[lang]||e.fr||key; }
+function setLang(l){ lang=l; try{ localStorage.setItem("distrivia-lang",l); }catch(e){} render(); if(view==="client"||view==="supplier") renderAcctBody(); if(view==="client-auth"||view==="supplier-auth") renderAuthBody(); }
+window.t=t; window.setLang=setLang;
 
 const LS = {
   get k(){ return "distrivia-portail"; },
@@ -502,13 +592,14 @@ function header(){
     <div class="topbar">
       <div class="brand" style="cursor:pointer" onclick="go('home')"><div class="wordmark">DISTRIVIA</div><div class="bar"></div><div class="sub">DISTRIBUTION GROUP</div></div>
       <div class="navlinks">
-        <button onclick="go('home')" class="${view==='home'?'active':''}">Accueil</button>
-        <button onclick="go('catalog')" class="${view==='catalog'?'active':''}">Catalogue</button>
-        <button onclick="go('services')" class="${view==='services'?'active':''}">Services</button>
-        <button onclick="go('contact')" class="${view==='contact'?'active':''}">Contact</button>
+        <button onclick="go('home')" class="${view==='home'?'active':''}">${t("nav_home")}</button>
+        <button onclick="go('catalog')" class="${view==='catalog'?'active':''}">${t("nav_catalog")}</button>
+        <button onclick="go('services')" class="${view==='services'?'active':''}">${t("nav_services")}</button>
+        <button onclick="go('contact')" class="${view==='contact'?'active':''}">${t("nav_contact")}</button>
         ${logged
-          ? `<button class="cta" onclick="go('${session.kind}')">Mon espace</button><button onclick="logout()">Déconnexion</button>`
-          : `<button onclick="go('client-auth')">Espace client</button><button class="cta" onclick="go('supplier-auth')">Espace fournisseur</button>`}
+          ? `<button class="cta" onclick="go('${session.kind}')">${t("nav_myspace")}</button><button onclick="logout()">${t("nav_logout")}</button>`
+          : `<button onclick="go('client-auth')">${t("nav_client")}</button><button class="cta" onclick="go('supplier-auth')">${t("nav_supplier")}</button>`}
+        <select class="langsel" onchange="setLang(this.value)" title="Langue / Language">${Object.entries(LANGS).map(([code,label])=>`<option value="${code}" ${lang===code?"selected":""}>${label}</option>`).join("")}</select>
       </div>
     </div>
   </header>`;
@@ -583,7 +674,7 @@ function vHome(){
 }
 
 /* ---------- CATALOG ---------- */
-let catFilter = "Tous";
+let catFilter = "__all__";
 let catSearch = "";
 function vCatalog(){
   // Produits live de Gestion regroupés par famille (sinon fallback FAMILIES)
@@ -597,10 +688,10 @@ function vCatalog(){
     FAMILIES.forEach(f=>{ groups[f.name]=f.items.map(([n,d])=>({name:n,desc:d,family:f.name})); });
   }
   const allFams = Object.keys(groups);
-  const filters = ["Tous", ...allFams];
+  const filters = ["__all__", ...allFams];
   const q = catSearch.trim().toLowerCase();
   // applique filtre + recherche
-  const visibleFams = allFams.filter(f=> catFilter==="Tous" || f===catFilter);
+  const visibleFams = allFams.filter(f=> catFilter==="Tous" || catFilter==="__all__" || f===catFilter);
   let cards = "";
   visibleFams.forEach(fam=>{
     const items = groups[fam].filter(p=> !q || (p.name||"").toLowerCase().includes(q) || (p.desc||"").toLowerCase().includes(q));
@@ -613,30 +704,30 @@ function vCatalog(){
           const promo = p.promoPrice ? money(p.promoPrice) : "";
           const rupture = (p.stock!==undefined && p.stock<=0);
           return `<div class="prod-card">
-          <div class="prod-photo">${p.img?`<img src="${p.img}" alt="${esc(p.name)}">`:`<span class="prod-photo-ph">${emojiOf(fam)}</span>`}${p.promoPct?`<span class="prod-promo-badge">−${p.promoPct}%</span>`:""}${rupture?'<span class="prod-rupture">Rupture</span>':''}</div>
+          <div class="prod-photo">${p.img?`<img src="${p.img}" alt="${esc(p.name)}">`:`<span class="prod-photo-ph">${emojiOf(fam)}</span>`}${p.promoPct?`<span class="prod-promo-badge">−${p.promoPct}%</span>`:""}${rupture?`<span class="prod-rupture">${t("cat_rupture")}</span>`:''}</div>
           <div class="prod-nm">${esc(p.name)}</div>
           ${prix?(p.promoPrice
-              ? `<div class="prod-price">${promo}<span class="prod-old"> ${prix}</span><span class="prod-unit"> / carton</span></div>`
-              : `<div class="prod-price">${prix}<span class="prod-unit"> / carton</span></div>`)
-            :`<div class="prod-ds">Prix sur demande</div>`}
-          <button class="prod-add" ${rupture?'disabled style="opacity:.5;cursor:not-allowed"':''} onclick="quickOrder('${esc((p.name||'').replace(/'/g,"\\'"))}')">${rupture?'Indisponible':'Commander'}</button>
+              ? `<div class="prod-price">${promo}<span class="prod-old"> ${prix}</span><span class="prod-unit">${t("cat_per_carton")}</span></div>`
+              : `<div class="prod-price">${prix}<span class="prod-unit">${t("cat_per_carton")}</span></div>`)
+            :`<div class="prod-ds">${t("cat_price_demand")}</div>`}
+          <button class="prod-add" ${rupture?'disabled style="opacity:.5;cursor:not-allowed"':''} onclick="quickOrder('${esc((p.name||'').replace(/'/g,"\\'"))}')">${rupture?t("cat_unavailable"):t("cat_order_btn")}</button>
         </div>`;}).join("")}
       </div></div>`;
   });
-  if(!cards) cards = `<div class="card" style="text-align:center;padding:40px"><p class="muted">Aucun produit ne correspond à « ${esc(catSearch)} ».</p></div>`;
+  if(!cards) cards = `<div class="card" style="text-align:center;padding:40px"><p class="muted">${t("cat_no_match")} « ${esc(catSearch)} ».</p></div>`;
   return `<section><div class="wrap">
-    <div class="eyebrow">Catalogue</div>
-    <h2 class="title">Nos produits</h2>
-    <p class="lead">${live?"Catalogue à jour en temps réel.":"Parcourez nos familles de produits."} Connectez-vous pour commander en quelques clics.</p>
+    <div class="eyebrow">${t("cat_eyebrow")}</div>
+    <h2 class="title">${t("cat_title")}</h2>
+    <p class="lead">${live?t("cat_lead_live"):t("cat_lead_static")} ${t("cat_lead2")}</p>
     <div class="cat-toolbar">
-      <input id="cat-search" class="cat-search" placeholder="🔍 Rechercher un produit…" value="${esc(catSearch)}">
+      <input id="cat-search" class="cat-search" placeholder="${t("cat_search")}" value="${esc(catSearch)}">
     </div>
     <div class="cat-filters">
-      ${filters.map(f=>`<button class="cat-chip ${catFilter===f?'on':''}" data-catf="${esc(f)}">${f==="Tous"?"Tous":emojiOf(f)+" "+esc(f)}</button>`).join("")}
+      ${filters.map(f=>`<button class="cat-chip ${(catFilter===f||(catFilter==='Tous'&&f==='__all__'))?'on':''}" data-catf="${esc(f)}">${f==="__all__"?t("cat_all"):emojiOf(f)+" "+esc(f)}</button>`).join("")}
     </div>
     ${cards}
     <div style="text-align:center; margin-top:30px">
-      <button class="btn lg" onclick="go('client-auth')">Créer un compte pour commander</button>
+      <button class="btn lg" onclick="go('client-auth')">${t("cat_create_account")}</button>
     </div>
   </div></section>`;
 }
@@ -723,8 +814,8 @@ function vAuth(kind){
     <h2 class="title" style="text-align:center">${isClient?"Connectez-vous pour commander":"Connectez-vous à votre espace fournisseur"}</h2>
     <div class="panel" style="margin-top:20px">
       <div class="acctnav" style="justify-content:center">
-        <button class="active" id="tab-login" onclick="switchAuth('login')">Se connecter</button>
-        <button id="tab-signup" onclick="switchAuth('signup')">Créer un compte</button>
+        <button class="active" id="tab-login" onclick="switchAuth('login')">${t("auth_login")}</button>
+        <button id="tab-signup" onclick="switchAuth('signup')">${t("auth_signup")}</button>
       </div>
       <div id="auth-body"></div>
     </div>
@@ -760,18 +851,18 @@ function renderAuthBody(){
   const isClient = kind==="client";
   const b=el("auth-body");
   if(authMode==="login"){
-    b.innerHTML=`<label>Email</label><input id="a-email" type="email" autocomplete="username">
-      <label>Mot de passe</label><input id="a-pass" type="password" autocomplete="current-password">
-      <button class="btn full" style="margin-top:18px" onclick="doLogin('${kind}')">Se connecter</button>
-      <div style="text-align:center;margin-top:10px"><a href="#" onclick="switchAuth('forgot');return false" style="color:var(--terra);font-size:13px;text-decoration:none">Mot de passe oublié ?</a></div>
+    b.innerHTML=`<label>${t("auth_email")}</label><input id="a-email" type="email" autocomplete="username">
+      <label>${t("auth_pass")}</label><input id="a-pass" type="password" autocomplete="current-password">
+      <button class="btn full" style="margin-top:18px" onclick="doLogin('${kind}')">${t("auth_login")}</button>
+      <div style="text-align:center;margin-top:10px"><a href="#" onclick="switchAuth('forgot');return false" style="color:var(--terra);font-size:13px;text-decoration:none">${t("auth_forgot")}</a></div>
       <div id="a-fb"></div>`;
   } else if(authMode==="forgot"){
-    b.innerHTML=`<p class="muted" style="margin-bottom:6px">Pour réinitialiser votre mot de passe, confirmez votre email et le téléphone associé à votre compte.</p>
-      <label>Email du compte</label><input id="a-email" type="email" autocomplete="username">
-      <label>Téléphone enregistré</label><input id="a-phone" placeholder="+221 77 …">
-      <label>Nouveau mot de passe</label><input id="a-newpass" type="password" placeholder="min. 6 caractères">
-      <button class="btn full" style="margin-top:18px" onclick="doReset('${kind}')">Réinitialiser</button>
-      <div style="text-align:center;margin-top:10px"><a href="#" onclick="switchAuth('login');return false" style="color:var(--gris);font-size:13px;text-decoration:none">← Retour à la connexion</a></div>
+    b.innerHTML=`<p class="muted" style="margin-bottom:6px">${t("auth_reset_intro")}</p>
+      <label>${t("auth_email")}</label><input id="a-email" type="email" autocomplete="username">
+      <label>${t("auth_phone_saved")}</label><input id="a-phone" placeholder="+221 77 …">
+      <label>${t("auth_newpass")}</label><input id="a-newpass" type="password" placeholder="min. 6 caractères">
+      <button class="btn full" style="margin-top:18px" onclick="doReset('${kind}')">${t("auth_reset_btn")}</button>
+      <div style="text-align:center;margin-top:10px"><a href="#" onclick="switchAuth('login');return false" style="color:var(--gris);font-size:13px;text-decoration:none">${t("auth_back_login")}</a></div>
       <div id="a-fb"></div>`;
   } else {
     b.innerHTML=`<label>${isClient?"Nom / établissement":"Nom de l'entreprise"}</label><input id="a-name" placeholder="${isClient?"Ex. Restaurant Teranga":"Ex. Shenzhen Pack Co."}">
@@ -820,7 +911,7 @@ async function doSignup(kind){
 /* ---------- CLIENT SPACE ---------- */
 function vClientSpace(){
   if(!session){ go("client-auth"); return ""; }
-  const tabs=[["orders","Mes commandes"],["invoices","Mes factures"],["new","Nouvelle commande"],["appointments","Rendez-vous"],["claims","Messages"],["profile","Mon profil"]];
+  const tabs=[["orders",t("tab_orders")],["invoices",t("tab_invoices")],["new",t("tab_new")],["appointments",t("tab_appointments")],["claims",t("tab_messages")],["profile",t("tab_profile")]];
   return `<section><div class="wrap">
     <div class="row" style="justify-content:space-between; align-items:flex-end">
       <div><div class="eyebrow">Espace client</div><h2 class="title">Bonjour, ${esc(session.name)}</h2></div>
@@ -882,38 +973,101 @@ async function clientOrdersHTML(){
 function statusLabel(s){ return {new:"Reçue",confirmed:"Confirmée",delivered:"Livrée",cancelled:"Annulée",pending:"En attente",resolved:"Résolue"}[s]||s; }
 
 /* ===== Mes factures (lecture depuis Gestion) ===== */
+let _invoiceCache = {};
+let _invoiceCompany = {};
 async function clientInvoicesHTML(){
-  if(!CONFIGURED) return `<div class="card"><p class="muted">Vos factures apparaîtront ici une fois le service en ligne activé.</p></div>`;
-  let orders=[];
+  if(!CONFIGURED) return `<div class="card"><p class="muted">${t("inv_none2")}</p></div>`;
+  let orders=[]; _invoiceCache={};
   try{
     await fbReady();
     const snap=await fdb.collection("distrivia").doc("etat").get();
     if(snap.exists){ const St=JSON.parse(snap.data().blob||"{}");
-      // retrouver le client Gestion correspondant (par email ou nom)
+      _invoiceCompany = { ninea:(St.settings&&St.settings.ninea)||"", rccm:(St.settings&&St.settings.rccm)||"", tvaEnabled:(St.settings&&St.settings.tvaEnabled), tvaRate:(St.settings&&St.settings.tvaRate)||0 };
       const myName=(session.name||"").toLowerCase(), myEmail=(session.email||"").toLowerCase();
       const cli=(St.clients||[]).find(c=> (c.email&&c.email.toLowerCase()===myEmail) || (c.name&&c.name.toLowerCase()===myName));
       if(cli){
-        const rate = (St.settings&&St.settings.tvaEnabled)?(St.settings.tvaRate||0):0;
+        const prodName=id=>{ const p=(St.products||[]).find(p=>p.id===id); return p?p.name:""; };
         orders=(St.orders||[]).filter(o=>o.clientId===cli.id && o.invoiceNum && o.status!=="cancelled").map(o=>{
           const ttc=o.lines.reduce((a,l)=>a+l.qty*l.price,0);
           const paid=(o.payments||[]).reduce((a,p)=>a+p.amount,0);
           const due=Math.max(0,ttc-paid);
-          return { num:o.invoiceNum, ref:o.num, date:o.date, ttc, paid, due, st: due<=0?"paid":(paid>0?"partial":"unpaid") };
+          const obj={ num:o.invoiceNum, ref:o.num, date:o.date, ttc, paid, due, st: due<=0?"paid":(paid>0?"partial":"unpaid"),
+            client:{name:cli.name, matricule:cli.matricule, type:cli.type, phone:cli.phone, zone:cli.zone},
+            lines:o.lines.map(l=>({name:l.name||prodName(l.productId), qty:l.qty, price:l.price})),
+            payMode:o.payMode, dueDate:o.dueDate };
+          _invoiceCache[obj.num]=obj;
+          return obj;
         }).sort((a,b)=>(a.num<b.num?1:-1));
       }
     }
   }catch(e){ console.warn("factures:",e); }
-  if(!orders.length) return `<div class="card" style="text-align:center"><p class="muted">Aucune facture pour le moment.</p><p class="muted" style="font-size:13px">Vos factures apparaîtront ici dès qu'elles seront émises par DISTRIVIA.</p></div>`;
+  if(!orders.length) return `<div class="card" style="text-align:center"><p class="muted">${t("inv_none")}</p><p class="muted" style="font-size:13px">${t("inv_none2")}</p></div>`;
   const totalDue=orders.reduce((a,o)=>a+o.due,0);
-  const fmtF=money;
-  const stBadge={paid:'<span class="badge delivered">Payée</span>',partial:'<span class="badge pending">Partielle</span>',unpaid:'<span class="badge new">À payer</span>'};
+  const stBadge={paid:`<span class="badge delivered">${t("st_paid")}</span>`,partial:`<span class="badge pending">${t("st_partial")}</span>`,unpaid:`<span class="badge new">${t("st_topay")}</span>`};
   return `
-  ${totalDue>0?`<div class="card" style="margin-bottom:14px;border-left:4px solid var(--terra)"><b>Solde à régler : ${fmtF(totalDue)}</b><div class="muted" style="font-size:13px;margin-top:4px">Réglez auprès de DISTRIVIA (espèces, Wave, Orange Money). Le statut se met à jour automatiquement après encaissement.</div></div>`:""}
+  ${totalDue>0?`<div class="card" style="margin-bottom:14px;border-left:4px solid var(--terra)"><b>${t("inv_balance")} : ${money(totalDue)}</b><div class="muted" style="font-size:13px;margin-top:4px">${t("inv_pay_hint")}</div></div>`:""}
   <div class="tablewrap"><table>
-    <tr><th>Facture</th><th>Date</th><th class="num">Total</th><th class="num">Payé</th><th class="num">Reste</th><th>Statut</th></tr>
-    ${orders.map(o=>`<tr><td><b>${esc(o.num)}</b><div class="muted" style="font-size:11px">${esc(o.ref)}</div></td><td>${(o.date||"").split("-").reverse().join("/")}</td><td class="num">${fmtF(o.ttc)}</td><td class="num">${fmtF(o.paid)}</td><td class="num">${o.due?'<b style="color:var(--terra)">'+fmtF(o.due)+'</b>':'—'}</td><td>${stBadge[o.st]}</td></tr>`).join("")}
+    <tr><th>${t("inv_col_invoice")}</th><th>${t("inv_col_date")}</th><th class="num">${t("inv_col_total")}</th><th class="num">${t("inv_col_paid")}</th><th class="num">${t("inv_col_left")}</th><th>${t("inv_col_status")}</th><th></th></tr>
+    ${orders.map(o=>`<tr><td><b>${esc(o.num)}</b><div class="muted" style="font-size:11px">${esc(o.ref)}</div></td><td>${(o.date||"").split("-").reverse().join("/")}</td><td class="num">${money(o.ttc)}</td><td class="num">${money(o.paid)}</td><td class="num">${o.due?'<b style="color:var(--terra)">'+money(o.due)+'</b>':'—'}</td><td>${stBadge[o.st]}</td><td><button class="btn sm outline" onclick="printClientInvoice('${esc(o.num)}')">🖨️ ${t("inv_print")}</button></td></tr>`).join("")}
   </table></div>`;
 }
+function printClientInvoice(num){
+  const o=_invoiceCache[num]; if(!o) return;
+  const co=_invoiceCompany||{};
+  const rate = co.tvaEnabled ? (co.tvaRate||0) : 0;
+  const rows=o.lines.map(l=>{
+    const lineTTC=l.qty*l.price; const puHT=rate>0?l.price/(1+rate/100):l.price; const lineHT=rate>0?lineTTC/(1+rate/100):lineTTC;
+    return `<tr><td style="padding:8px 10px;border-bottom:1px solid #eee">${esc(l.name)}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right">${l.qty}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right">${money(puHT)}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right">${money(lineHT)}</td></tr>`;
+  }).join("");
+  const tva=rate>0?o.ttc-o.ttc/(1+rate/100):0; const ht=o.ttc-tva;
+  const L = {
+    invoice:{fr:"FACTURE",en:"INVOICE",zh:"发票",es:"FACTURA"}[lang]||"FACTURE",
+    billed:{fr:"Facturé à",en:"Billed to",zh:"开票给",es:"Facturado a"}[lang],
+    date:{fr:"Date",en:"Date",zh:"日期",es:"Fecha"}[lang],
+    order:{fr:"Réf. commande",en:"Order ref.",zh:"订单号",es:"Ref. pedido"}[lang],
+    desig:{fr:"Désignation",en:"Description",zh:"品名",es:"Descripción"}[lang],
+    qty:{fr:"Qté",en:"Qty",zh:"数量",es:"Cant."}[lang],
+    puht:{fr:"P.U. HT",en:"Unit excl.",zh:"单价",es:"P.U. sin IVA"}[lang],
+    montht:{fr:"Montant HT",en:"Amount excl.",zh:"金额",es:"Importe"}[lang],
+    totht:{fr:"Total HT",en:"Subtotal",zh:"小计",es:"Subtotal"}[lang],
+    tva:{fr:"TVA",en:"VAT",zh:"增值税",es:"IVA"}[lang],
+    total:{fr:"TOTAL",en:"TOTAL",zh:"总计",es:"TOTAL"}[lang],
+    paid:{fr:"Déjà payé",en:"Paid",zh:"已付",es:"Pagado"}[lang],
+    due:{fr:"Reste à payer",en:"Balance due",zh:"应付余额",es:"Saldo a pagar"}[lang],
+    settled:{fr:"✓ Facture acquittée",en:"✓ Invoice paid",zh:"✓ 已结清",es:"✓ Factura pagada"}[lang],
+    thanks:{fr:"Merci de votre confiance.",en:"Thank you for your business.",zh:"感谢您的信任。",es:"Gracias por su confianza."}[lang],
+    notvat:{fr:"Non assujetti à la TVA",en:"VAT not applicable",zh:"不适用增值税",es:"No sujeto a IVA"}[lang],
+  };
+  const html=`<div style="max-width:720px;margin:0 auto;font-family:Arial,Helvetica,sans-serif;color:#1A1A1A;font-size:13px;padding:10px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #C85E2D;padding-bottom:14px">
+      <div><div style="font-weight:800;letter-spacing:5px;font-size:26px;color:#0F2A4A">DISTRIVIA</div>
+        <div style="width:60px;height:3px;background:#C85E2D;margin:3px 0"></div>
+        <div style="font-size:9px;letter-spacing:3px;color:#888">DISTRIBUTION GROUP</div>
+        <div style="font-size:11px;color:#555;margin-top:8px;line-height:1.5">Dakar · Sénégal<br>contact@distrivia.sn · +221 77 527 82 24${co.ninea?`<br>NINEA : ${esc(co.ninea)}`:""}${co.rccm?` · RCCM : ${esc(co.rccm)}`:""}</div>
+      </div>
+      <div style="text-align:right"><div style="background:#0F2A4A;color:#fff;padding:10px 18px;border-radius:8px"><div style="font-size:11px;letter-spacing:2px;opacity:.8">${L.invoice}</div><div style="font-size:18px;font-weight:800">${esc(o.num)}</div></div>
+        <div style="font-size:12px;color:#555;margin-top:8px">${L.date} : ${(o.date||"").split("-").reverse().join("/")}</div>
+        <div style="font-size:11px;color:#888">${L.order} : ${esc(o.ref)}</div></div>
+    </div>
+    <div style="margin:16px 0;font-size:12px"><div style="font-size:10px;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${L.billed}</div>
+      <b style="font-size:14px">${esc(o.client.name||"")}</b>${o.client.matricule?` <span style="color:#0F2A4A;font-weight:700">(${esc(o.client.matricule)})</span>`:""}${o.client.type?`<br>${esc(o.client.type)}`:""}${o.client.phone?`<br>${esc(o.client.phone)}`:""}${o.client.zone?`<br>${esc(o.client.zone)}, Dakar`:""}</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+      <tr style="background:#0F2A4A;color:#fff"><th style="padding:8px 10px;text-align:left">${L.desig}</th><th style="padding:8px 10px;text-align:right">${L.qty}</th><th style="padding:8px 10px;text-align:right">${L.puht}</th><th style="padding:8px 10px;text-align:right">${L.montht}</th></tr>
+      ${rows}
+    </table>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px"><table style="font-size:13px;min-width:260px">
+      <tr><td style="padding:4px 10px;color:#555">${L.totht}</td><td style="padding:4px 10px;text-align:right">${money(ht)}</td></tr>
+      ${rate>0?`<tr><td style="padding:4px 10px;color:#555">${L.tva} ${rate} %</td><td style="padding:4px 10px;text-align:right">${money(tva)}</td></tr>`:`<tr><td style="padding:4px 10px;color:#888" colspan="2">${L.notvat}</td></tr>`}
+      <tr style="background:#F5F1E8;font-weight:800;font-size:15px"><td style="padding:8px 10px;color:#0F2A4A">${L.total} ${rate>0?"TTC":""}</td><td style="padding:8px 10px;text-align:right;color:#0F2A4A">${money(o.ttc)}</td></tr>
+      ${o.paid>0?`<tr><td style="padding:4px 10px;color:#2E6B3E">${L.paid}</td><td style="padding:4px 10px;text-align:right;color:#2E6B3E">${money(o.paid)}</td></tr>`:""}
+      ${o.due>0?`<tr><td style="padding:4px 10px;color:#C85E2D;font-weight:700">${L.due}</td><td style="padding:4px 10px;text-align:right;color:#C85E2D;font-weight:700">${money(o.due)}</td></tr>`:`<tr><td style="padding:4px 10px;color:#2E6B3E;font-weight:700" colspan="2">${L.settled}</td></tr>`}
+    </table></div>
+    <div style="margin-top:20px;font-size:11px;color:#666;border-top:1px solid #eee;padding-top:10px">${L.thanks}</div>
+  </div>`;
+  const w=window.open("","_blank");
+  if(w){ w.document.write(`<html><head><title>${esc(o.num)}</title><meta charset="utf-8"></head><body onload="window.print()">${html}</body></html>`); w.document.close(); }
+}
+window.printClientInvoice=printClientInvoice;
 function showOrder(id){
   const o=_ordersCache[id]; if(!o) return;
   openModal(`<button class="x" onclick="closeModal()">×</button><h3 style="color:var(--bleu)">Commande ${esc(o.ref)}</h3>
@@ -937,23 +1091,24 @@ function clientNewOrderHTML(){
   return `<div class="grid g2">
     <div>
       <div class="card">
-        <h3 style="color:var(--bleu); margin-bottom:6px">Choisissez vos produits</h3>
-        <p class="muted" style="margin-bottom:12px">Cliquez pour ajouter au panier. Les prix vous sont confirmés à la validation.</p>
+        <h3 style="color:var(--bleu); margin-bottom:6px">${t("choose_products")}</h3>
+        <p class="muted" style="margin-bottom:12px">${t("choose_hint")}</p>
         ${fams.map(f=>`<div style="margin-bottom:14px"><div style="font-weight:700; color:var(--bleu); margin-bottom:6px">${f.emoji||"▸"} ${esc(f.name)}</div>
           <div>${f.items.map(i=>`<span class="pill" data-add="${esc(i.name)}|${esc(f.name)}">${esc(i.name)} +</span>`).join("")}</div></div>`).join("")}
       </div>
     </div>
     <div>
       <div class="card">
-        <h3 style="color:var(--bleu); margin-bottom:10px">🛒 Mon panier</h3>
+        <h3 style="color:var(--bleu); margin-bottom:10px">${t("cart_title")}</h3>
         <div id="cart-body">${cartHTML()}</div>
         ${cart.length?`
-        <label>Mode de réception</label>
-        <select id="o-delivery"><option value="delivery">Livraison (48 h sur Dakar)</option><option value="pickup">Retrait à l'entrepôt</option></select>
-        <label>Zone / adresse de livraison</label><input id="o-zone" placeholder="Ex. Plateau, près de…" value="${esc((session&&session.zone)||"")}">
-        <label>Note (facultatif)</label><textarea id="o-note" placeholder="Précisions sur votre commande…"></textarea>
-        <button class="btn full" style="margin-top:14px" onclick="submitOrder()">Envoyer la commande</button>
-        <p class="muted" style="margin-top:8px">Un conseiller confirme votre commande et les prix sous 24 h.</p>
+        <label>${t("delivery_mode")}</label>
+        <select id="o-delivery"><option value="delivery">${t("delivery_home")}</option><option value="pickup">${t("delivery_pickup")}</option></select>
+        <label>${t("delivery_zone")}</label><input id="o-zone" placeholder="${t("delivery_zone_ph")}" value="${esc((session&&session.zone)||"")}">
+        <label>${t("phone_label")}</label><input id="o-phone" placeholder="+221 77 …" value="${esc((session&&session.phone)||"")}">
+        <label>${t("note_label")}</label><textarea id="o-note" placeholder="${t("note_ph")}"></textarea>
+        <button class="btn full" style="margin-top:14px" onclick="submitOrder()">${t("send_order")}</button>
+        <p class="muted" style="margin-top:8px">${t("order_confirm_note")}</p>
         `:""}
       </div>
     </div>
@@ -964,10 +1119,10 @@ function groupByFamily(prods){
   return Object.values(m);
 }
 function cartHTML(){
-  if(!cart.length) return `<p class="muted">Votre panier est vide. Ajoutez des produits depuis la liste.</p>`;
+  if(!cart.length) return `<p class="muted">${t("cart_empty")}</p>`;
   return cart.map((l,i)=>`<div class="cartline">
     <div><div style="font-weight:600">${esc(l.name)}</div><div class="muted">${esc(l.family)}</div></div>
-    <div class="qty"><button onclick="cartQty(${i},-1)">−</button><b>${l.qty}</b><button onclick="cartQty(${i},1)">+</button></div>
+    <div class="qty"><button onclick="cartQty(${i},-1)">−</button><input type="number" min="1" value="${l.qty}" onchange="cartSetQty(${i},this.value)" style="width:48px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:4px;font-weight:700"><button onclick="cartQty(${i},1)">+</button></div>
     <div></div><button class="x" style="float:none" onclick="cartRemove(${i})">×</button>
   </div>`).join("");
 }
@@ -984,11 +1139,14 @@ function refreshCartArea(){
   renderAcctBody();
 }
 function cartQty(i,d){ cart[i].qty=Math.max(1,cart[i].qty+d); refreshCartArea(); }
+function cartSetQty(i,v){ const n=Math.max(1,Math.round(+v||1)); cart[i].qty=n; refreshCartArea(); }
+window.cartSetQty=cartSetQty;
 function cartRemove(i){ cart.splice(i,1); refreshCartArea(); }
 async function submitOrder(){
   if(!cart.length) return;
   const ref="WEB-"+new Date().getFullYear()+"-"+uid().slice(0,5).toUpperCase();
   const row={ id:uid(), ref, client_id:session.id, client_name:session.name, client_email:session.email,
+    client_phone:el("o-phone")?el("o-phone").value.trim():((session&&session.phone)||""),
     items:cart.map(l=>({name:l.name,family:l.family,qty:l.qty})), note:el("o-note")?el("o-note").value.trim():"",
     delivery:el("o-delivery")?el("o-delivery").value:"delivery", zone:el("o-zone")?el("o-zone").value.trim():"",
     status:"new", created:nowISO() };
@@ -1054,16 +1212,16 @@ async function chatHTML(){
         <div style="font-size:14px;line-height:1.45;white-space:pre-wrap">${esc(m.text)}</div>
         <div style="font-size:10px;opacity:.65;text-align:right;margin-top:3px">${fmtTime(m.date)}</div>
       </div></div>`;
-  }).join("") : `<div style="text-align:center;color:#888;padding:30px 10px;font-size:14px">👋 Démarrez la conversation avec l'équipe DISTRIVIA.<br>Posez vos questions, suivez vos commandes, signalez un souci.</div>`;
+  }).join("") : `<div style="text-align:center;color:#888;padding:30px 10px;font-size:14px">${t("chat_start")}<br>${t("chat_start2")}</div>`;
   return `<div class="panel" style="margin:0;padding:0;overflow:hidden">
     <div style="background:var(--bleu);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:10px">
       <div style="width:38px;height:38px;border-radius:50%;background:var(--terra);display:flex;align-items:center;justify-content:center;font-weight:800">D</div>
-      <div><div style="font-weight:700">DISTRIVIA — Support</div><div style="font-size:11px;opacity:.8">Réponse sous 24h ouvrées</div></div>
+      <div><div style="font-weight:700">${t("chat_header")}</div><div style="font-size:11px;opacity:.8">${t("chat_reply_time")}</div></div>
     </div>
     <div id="chat-scroll" style="background:var(--creme);padding:14px 16px;height:46vh;min-height:280px;overflow-y:auto">${bubbles}</div>
     <div style="display:flex;gap:8px;padding:12px;border-top:1px solid #eee;background:#fff">
-      <textarea id="chat-input" rows="1" placeholder="Votre message…" style="flex:1;resize:none;border:1px solid #ddd;border-radius:20px;padding:10px 16px;font-family:inherit;font-size:14px"></textarea>
-      <button class="btn" id="chat-send" style="border-radius:20px;padding:10px 20px">Envoyer</button>
+      <textarea id="chat-input" rows="1" placeholder="${t('chat_input_ph')}" style="flex:1;resize:none;border:1px solid #ddd;border-radius:20px;padding:10px 16px;font-family:inherit;font-size:14px"></textarea>
+      <button class="btn" id="chat-send" style="border-radius:20px;padding:10px 20px">${t("send")}</button>
     </div>
   </div>`;
 }
@@ -1090,7 +1248,7 @@ function bindClaim(){
 }
 function chatBubbles(){
   const msgs=(_convo&&_convo.messages)||[];
-  if(!msgs.length) return `<div style="text-align:center;color:#888;padding:30px 10px;font-size:14px">👋 Démarrez la conversation avec l'équipe DISTRIVIA.</div>`;
+  if(!msgs.length) return `<div style="text-align:center;color:#888;padding:30px 10px;font-size:14px">${t("chat_start")}</div>`;
   return msgs.map(m=>{ const mine=m.from!=="DISTRIVIA";
     return `<div style="display:flex;${mine?"justify-content:flex-end":"justify-content:flex-start"};margin:6px 0">
       <div style="max-width:75%;background:${mine?"var(--bleu)":"#fff"};color:${mine?"#fff":"#1A1A1A"};padding:9px 13px;border-radius:14px;${mine?"border-bottom-right-radius:4px":"border-bottom-left-radius:4px"};box-shadow:0 1px 3px rgba(15,42,74,.12)">
