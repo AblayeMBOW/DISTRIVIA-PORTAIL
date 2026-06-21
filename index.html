@@ -341,6 +341,133 @@ const I18N = {
   auth_back_login:{fr:"← Retour à la connexion",en:"← Back to login",zh:"← 返回登录",es:"← Volver al inicio"},
   // Divers
   loading:{fr:"Chargement…",en:"Loading…",zh:"加载中…",es:"Cargando…"},
+  // Rendez-vous (point 8)
+  appt_take:{fr:"Prendre rendez-vous",en:"Book an appointment",zh:"预约",es:"Reservar cita"},
+  appt_subject:{fr:"Objet",en:"Subject",zh:"事由",es:"Asunto"},
+  appt_visit_comm:{fr:"Visite commerciale",en:"Sales visit",zh:"商务拜访",es:"Visita comercial"},
+  appt_quote:{fr:"Devis sur mesure",en:"Custom quote",zh:"定制报价",es:"Presupuesto a medida"},
+  appt_visit_wh:{fr:"Visite de l'entrepôt",en:"Warehouse visit",zh:"参观仓库",es:"Visita al almacén"},
+  appt_open_acct:{fr:"Ouverture de compte pro",en:"Open a business account",zh:"开设企业账户",es:"Abrir cuenta profesional"},
+  appt_other:{fr:"Autre",en:"Other",zh:"其他",es:"Otro"},
+  appt_date:{fr:"Date souhaitée",en:"Preferred date",zh:"期望日期",es:"Fecha deseada"},
+  appt_slot:{fr:"Créneau",en:"Time slot",zh:"时间段",es:"Franja horaria"},
+  appt_morning:{fr:"Matin (8h–12h)",en:"Morning (8am–12pm)",zh:"上午（8–12点）",es:"Mañana (8h–12h)"},
+  appt_afternoon:{fr:"Après-midi (14h–18h)",en:"Afternoon (2pm–6pm)",zh:"下午（14–18点）",es:"Tarde (14h–18h)"},
+  appt_msg:{fr:"Message (facultatif)",en:"Message (optional)",zh:"留言（可选）",es:"Mensaje (opcional)"},
+  appt_msg_ph:{fr:"Précisez votre besoin…",en:"Describe your need…",zh:"说明您的需求…",es:"Indique su necesidad…"},
+  appt_request:{fr:"Demander le rendez-vous",en:"Request appointment",zh:"提交预约",es:"Solicitar cita"},
+  appt_when:{fr:"Quand",en:"When",zh:"时间",es:"Cuándo"},
+  appt_none:{fr:"Aucun rendez-vous pour l'instant.",en:"No appointments yet.",zh:"暂无预约。",es:"Aún no hay citas."},
+  appt_cancel:{fr:"Annuler",en:"Cancel",zh:"取消",es:"Cancelar"},
+  appt_pick_date:{fr:"Choisissez une date.",en:"Please choose a date.",zh:"请选择日期。",es:"Elija una fecha."},
+  appt_sent:{fr:"Demande de rendez-vous envoyée ✓",en:"Appointment request sent ✓",zh:"预约请求已发送 ✓",es:"Solicitud de cita enviada ✓"},
+  appt_st_pending:{fr:"En attente",en:"Pending",zh:"待确认",es:"Pendiente"},
+  appt_st_confirmed:{fr:"Confirmé",en:"Confirmed",zh:"已确认",es:"Confirmada"},
+  appt_st_cancelled:{fr:"Annulé",en:"Cancelled",zh:"已取消",es:"Cancelada"},
+  appt_st_done:{fr:"Terminé",en:"Done",zh:"已完成",es:"Realizada"},
+  appt_cancel_title:{fr:"Annuler le rendez-vous",en:"Cancel appointment",zh:"取消预约",es:"Cancelar cita"},
+  appt_cancel_intro:{fr:"Indiquez le motif de l'annulation. DISTRIVIA en sera informé.",en:"Please give a reason. DISTRIVIA will be notified.",zh:"请说明取消原因，DISTRIVIA 将收到通知。",es:"Indique el motivo. DISTRIVIA será notificado."},
+  appt_cancel_reason:{fr:"Motif",en:"Reason",zh:"原因",es:"Motivo"},
+  appt_reason_conflict:{fr:"Contretemps / empêchement",en:"Scheduling conflict",zh:"时间冲突",es:"Imprevisto"},
+  appt_reason_reschedule:{fr:"Je veux reprogrammer",en:"I want to reschedule",zh:"我想改期",es:"Quiero reprogramar"},
+  appt_reason_nolonger:{fr:"Je n'ai plus besoin",en:"No longer needed",zh:"不再需要",es:"Ya no lo necesito"},
+  appt_cancel_precise:{fr:"Précisez le motif…",en:"Specify the reason…",zh:"请说明原因…",es:"Especifique el motivo…"},
+  appt_back:{fr:"Retour",en:"Back",zh:"返回",es:"Volver"},
+  appt_confirm_cancel:{fr:"Confirmer l'annulation",en:"Confirm cancellation",zh:"确认取消",es:"Confirmar cancelación"},
+  appt_cancelled_ok:{fr:"Rendez-vous annulé",en:"Appointment cancelled",zh:"预约已取消",es:"Cita cancelada"},
+  // Accueil (hero + sections)
+  hero_title_a:{fr:"Vos consommables livrés en",en:"Your supplies delivered in",zh:"您的耗材送达仅需",es:"Sus consumibles entregados en"},
+  hero_title_b:{fr:"sur Dakar.",en:"across Dakar.",zh:"达喀尔范围内。",es:"en Dakar."},
+  hero_sub:{fr:"Emballages, vaisselle jetable, hygiène, médical, événementiel, écologique, bureautique — en gros et demi-gros, pour les professionnels comme pour les particuliers.",en:"Packaging, disposable tableware, hygiene, medical, events, eco-friendly, office supplies — wholesale and semi-wholesale, for businesses and individuals.",zh:"包装、一次性餐具、卫生、医疗、活动、环保、办公用品——批发及半批发，面向企业和个人。",es:"Embalajes, vajilla desechable, higiene, médico, eventos, ecológico, oficina — al por mayor y semimayor, para profesionales y particulares."},
+  hero_cta1:{fr:"Commander maintenant",en:"Order now",zh:"立即下单",es:"Pedir ahora"},
+  hero_cta2:{fr:"Voir le catalogue",en:"View catalog",zh:"查看目录",es:"Ver catálogo"},
+  hero_band1:{fr:"FAMILLES DE PRODUITS",en:"PRODUCT FAMILIES",zh:"产品系列",es:"FAMILIAS DE PRODUCTOS"},
+  hero_band2:{fr:"DÉLAI DE LIVRAISON",en:"DELIVERY TIME",zh:"配送时间",es:"PLAZO DE ENTREGA"},
+  hero_band3:{fr:"CONFORME ANTI-PLASTIQUE",en:"ANTI-PLASTIC COMPLIANT",zh:"符合禁塑规定",es:"CONFORME ANTIPLÁSTICO"},
+  why_eyebrow:{fr:"Pourquoi DISTRIVIA",en:"Why DISTRIVIA",zh:"为何选择 DISTRIVIA",es:"Por qué DISTRIVIA"},
+  why_title:{fr:"Un seul fournisseur, tout votre approvisionnement",en:"One supplier, all your sourcing",zh:"一个供应商，满足全部采购",es:"Un solo proveedor, todo su abastecimiento"},
+  why_lead:{fr:"Nous combinons prix de gros, stock permanent, livraison fiable et conformité réglementaire — ce qu'aucun acteur du marché ne réunit aujourd'hui.",en:"We combine wholesale prices, permanent stock, reliable delivery and regulatory compliance — something no other player offers today.",zh:"我们结合批发价格、常备库存、可靠配送和合规保障——这是目前市场上独一无二的。",es:"Combinamos precios de mayorista, stock permanente, entrega fiable y conformidad normativa — algo que ningún actor del mercado reúne hoy."},
+  spaces_eyebrow:{fr:"Deux espaces dédiés",en:"Two dedicated areas",zh:"两个专属空间",es:"Dos espacios dedicados"},
+  spaces_title:{fr:"Clients et fournisseurs, chacun chez soi",en:"Clients and suppliers, each their own space",zh:"客户与供应商，各有专区",es:"Clientes y proveedores, cada uno en su espacio"},
+  space_client_t:{fr:"Espace client",en:"Client area",zh:"客户专区",es:"Área cliente"},
+  space_client_d:{fr:"Créez votre compte, parcourez le catalogue, passez commande, prenez rendez-vous et suivez vos livraisons. Adressez vos réclamations en un clic.",en:"Create your account, browse the catalog, place orders, book appointments and track deliveries. Send your claims in one click.",zh:"创建账户、浏览目录、下单、预约并跟踪配送。一键提交投诉。",es:"Cree su cuenta, explore el catálogo, haga pedidos, reserve citas y siga sus entregas. Envíe sus reclamaciones en un clic."},
+  space_client_btn:{fr:"Accéder à l'espace client",en:"Go to client area",zh:"进入客户专区",es:"Ir al área cliente"},
+  space_sup_t:{fr:"Espace fournisseur",en:"Supplier area",zh:"供应商专区",es:"Área proveedor"},
+  space_sup_d:{fr:"Référencez votre entreprise, répondez à nos appels d'offres, envoyez vos cotations et suivez vos commandes d'achat avec DISTRIVIA.",en:"List your company, respond to our tenders, send quotes and track your purchase orders with DISTRIVIA.",zh:"登记您的公司、响应招标、发送报价并跟踪与 DISTRIVIA 的采购订单。",es:"Registre su empresa, responda a nuestras licitaciones, envíe cotizaciones y siga sus órdenes de compra con DISTRIVIA."},
+  space_sup_btn:{fr:"Accéder à l'espace fournisseur",en:"Go to supplier area",zh:"进入供应商专区",es:"Ir al área proveedor"},
+  fam_eyebrow:{fr:"Le catalogue",en:"The catalog",zh:"产品目录",es:"El catálogo"},
+  fam_title:{fr:"Sept familles pour toutes vos occasions",en:"Seven families for every occasion",zh:"七大系列，满足各种需求",es:"Siete familias para todas sus ocasiones"},
+  fam_see_all:{fr:"Voir tout le catalogue",en:"See full catalog",zh:"查看完整目录",es:"Ver todo el catálogo"},
+  // Services
+  svc_eyebrow:{fr:"Nos services",en:"Our services",zh:"我们的服务",es:"Nuestros servicios"},
+  svc_title:{fr:"Bien plus qu'un fournisseur",en:"Much more than a supplier",zh:"不止是供应商",es:"Mucho más que un proveedor"},
+  svc_lead:{fr:"DISTRIVIA combine prix de gros, logistique fiable et accompagnement de proximité.",en:"DISTRIVIA combines wholesale prices, reliable logistics and close support.",zh:"DISTRIVIA 结合批发价格、可靠物流和贴心服务。",es:"DISTRIVIA combina precios de mayorista, logística fiable y acompañamiento cercano."},
+  svc_open_client:{fr:"Ouvrir mon espace client",en:"Open my client area",zh:"开通客户专区",es:"Abrir mi área cliente"},
+  svc1_t:{fr:"Livraison 48 h",en:"48 h delivery",zh:"48小时配送",es:"Entrega 48 h"},
+  svc1_d:{fr:"Sur tout Dakar et la petite côte. Suivi de commande par QR code, livraison fiable et ponctuelle.",en:"Across Dakar and the Petite Côte. Order tracking by QR code, reliable and punctual delivery.",zh:"覆盖整个达喀尔及小海岸。二维码订单跟踪，配送可靠准时。",es:"En todo Dakar y la Petite Côte. Seguimiento por código QR, entrega fiable y puntual."},
+  svc2_t:{fr:"Gros & demi-gros",en:"Wholesale & semi-wholesale",zh:"批发与半批发",es:"Mayor y semimayor"},
+  svc2_d:{fr:"Du carton à la palette. Prix dégressifs selon les volumes, stock permanent sur les références clés.",en:"From box to pallet. Volume discounts, permanent stock on key items.",zh:"从单箱到整托。按量递减价格，关键品类常备库存。",es:"De la caja al palé. Precios decrecientes por volumen, stock permanente en referencias clave."},
+  svc3_t:{fr:"Rendez-vous commercial",en:"Sales appointment",zh:"商务预约",es:"Cita comercial"},
+  svc3_d:{fr:"Planifiez une visite de notre équipe ou un passage à l'entrepôt depuis votre espace client.",en:"Schedule a visit from our team or a stop at the warehouse from your client area.",zh:"在客户专区预约我们团队拜访或到仓库参观。",es:"Programe una visita de nuestro equipo o una visita al almacén desde su área cliente."},
+  svc4_t:{fr:"Contrats grands comptes",en:"Key account contracts",zh:"大客户合同",es:"Contratos grandes cuentas"},
+  svc4_d:{fr:"Hôtels, cliniques, chaînes de restauration : conditions annuelles, prix négociés, conformité garantie.",en:"Hotels, clinics, restaurant chains: annual terms, negotiated prices, guaranteed compliance.",zh:"酒店、诊所、连锁餐饮：年度条款、议定价格、合规保障。",es:"Hoteles, clínicas, cadenas de restauración: condiciones anuales, precios negociados, conformidad garantizada."},
+  svc5_t:{fr:"Support & messagerie",en:"Support & messaging",zh:"支持与消息",es:"Soporte y mensajería"},
+  svc5_d:{fr:"Une question, un souci ? Discutez en direct avec notre équipe depuis votre espace, comme sur WhatsApp.",en:"A question, an issue? Chat live with our team from your area, like on WhatsApp.",zh:"有疑问或问题？在专区内与团队实时聊天，就像 WhatsApp。",es:"¿Una pregunta, un problema? Chatee en directo con nuestro equipo desde su área, como en WhatsApp."},
+  svc6_t:{fr:"Gamme écologique",en:"Eco-friendly range",zh:"环保系列",es:"Gama ecológica"},
+  svc6_d:{fr:"Alternatives biodégradables conformes à la loi 2020-04 : fibre de canne, PLA, bambou, kraft.",en:"Biodegradable alternatives compliant with law 2020-04: cane fiber, PLA, bamboo, kraft.",zh:"符合 2020-04 法规的可降解替代品：蔗渣纤维、PLA、竹子、牛皮纸。",es:"Alternativas biodegradables conformes a la ley 2020-04: fibra de caña, PLA, bambú, kraft."},
+  // Contact
+  ct_eyebrow:{fr:"Contact",en:"Contact",zh:"联系",es:"Contacto"},
+  ct_title:{fr:"Parlons de votre approvisionnement",en:"Let's talk about your sourcing",zh:"聊聊您的采购需求",es:"Hablemos de su abastecimiento"},
+  ct_write:{fr:"Écrivez-nous",en:"Write to us",zh:"给我们留言",es:"Escríbanos"},
+  ct_name:{fr:"Votre nom",en:"Your name",zh:"您的姓名",es:"Su nombre"},
+  ct_contact:{fr:"Téléphone ou email",en:"Phone or email",zh:"电话或邮箱",es:"Teléfono o correo"},
+  ct_msg:{fr:"Message",en:"Message",zh:"留言",es:"Mensaje"},
+  ct_msg_ph:{fr:"Votre besoin, vos volumes, votre zone…",en:"Your need, volumes, area…",zh:"您的需求、用量、地区…",es:"Su necesidad, volúmenes, zona…"},
+  ct_send:{fr:"Envoyer le message",en:"Send message",zh:"发送留言",es:"Enviar mensaje"},
+  ct_whatsapp:{fr:"WhatsApp direct",en:"Direct WhatsApp",zh:"直接 WhatsApp",es:"WhatsApp directo"},
+  ct_phone_t:{fr:"📞 Téléphone & WhatsApp",en:"📞 Phone & WhatsApp",zh:"📞 电话与 WhatsApp",es:"📞 Teléfono y WhatsApp"},
+  ct_email_t:{fr:"✉️ Email",en:"✉️ Email",zh:"✉️ 邮箱",es:"✉️ Correo"},
+  ct_addr_t:{fr:"📍 Adresse",en:"📍 Address",zh:"📍 地址",es:"📍 Dirección"},
+  ct_hours_t:{fr:"🕐 Horaires",en:"🕐 Hours",zh:"🕐 营业时间",es:"🕐 Horario"},
+  ct_hours_v:{fr:"Lundi – Samedi : 8h – 19h · Livraison 48 h sur Dakar",en:"Monday – Saturday: 8am – 7pm · 48 h delivery in Dakar",zh:"周一至周六：8:00–19:00 · 达喀尔48小时配送",es:"Lunes – Sábado: 8h – 19h · Entrega 48 h en Dakar"},
+  ct_fill_all:{fr:"Merci de remplir tous les champs.",en:"Please fill in all fields.",zh:"请填写所有字段。",es:"Complete todos los campos."},
+  ct_sent:{fr:"Message envoyé. Nous vous recontactons sous 24 h ouvrées.",en:"Message sent. We'll get back to you within 24 business hours.",zh:"留言已发送。我们将在24个工作小时内回复。",es:"Mensaje enviado. Le responderemos en 24 h hábiles."},
+  // Footer
+  ft_tagline:{fr:"Le premier réseau de distribution de consommables jetables et durables au Sénégal.",en:"Senegal's leading network for disposable and sustainable supplies.",zh:"塞内加尔领先的一次性及可持续耗材分销网络。",es:"La primera red de distribución de consumibles desechables y sostenibles de Senegal."},
+  ft_nav:{fr:"NAVIGATION",en:"NAVIGATION",zh:"导航",es:"NAVEGACIÓN"},
+  ft_contact:{fr:"CONTACT",en:"CONTACT",zh:"联系",es:"CONTACTO"},
+  ft_hours:{fr:"HORAIRES",en:"HOURS",zh:"营业时间",es:"HORARIO"},
+  ft_hours1:{fr:"Lun – Sam : 8h – 19h",en:"Mon – Sat: 8am – 7pm",zh:"周一至周六：8:00–19:00",es:"Lun – Sáb: 8h – 19h"},
+  ft_hours2:{fr:"Livraison 48 h sur Dakar",en:"48 h delivery in Dakar",zh:"达喀尔48小时配送",es:"Entrega 48 h en Dakar"},
+  ft_hours3:{fr:"Commande WhatsApp 7j/7",en:"WhatsApp orders 7/7",zh:"WhatsApp 全周下单",es:"Pedidos WhatsApp 7/7"},
+  ft_rights:{fr:"Tous droits réservés.",en:"All rights reserved.",zh:"版权所有。",es:"Todos los derechos reservados."},
+  // Profil
+  prof_title:{fr:"Mon profil",en:"My profile",zh:"我的资料",es:"Mi perfil"},
+  prof_name:{fr:"Nom / établissement",en:"Name / business",zh:"名称 / 机构",es:"Nombre / establecimiento"},
+  prof_email:{fr:"Email",en:"Email",zh:"邮箱",es:"Correo"},
+  prof_phone:{fr:"Téléphone",en:"Phone",zh:"电话",es:"Teléfono"},
+  prof_type:{fr:"Type d'activité",en:"Business type",zh:"业务类型",es:"Tipo de actividad"},
+  prof_zone:{fr:"Zone / quartier",en:"Area / district",zh:"区域",es:"Zona / barrio"},
+  prof_save:{fr:"Enregistrer",en:"Save",zh:"保存",es:"Guardar"},
+  prof_saved:{fr:"Profil mis à jour ✓",en:"Profile updated ✓",zh:"资料已更新 ✓",es:"Perfil actualizado ✓"},
+  prof_logout:{fr:"Déconnexion",en:"Log out",zh:"退出登录",es:"Cerrar sesión"},
+  // Mes commandes
+  ord_none:{fr:"Aucune commande pour l'instant.",en:"No orders yet.",zh:"暂无订单。",es:"Aún no hay pedidos."},
+  ord_col_ref:{fr:"Réf",en:"Ref",zh:"编号",es:"Ref"},
+  ord_col_articles:{fr:"Articles",en:"Items",zh:"商品",es:"Artículos"},
+  ord_details:{fr:"Détails",en:"Details",zh:"详情",es:"Detalles"},
+  ord_cart_btn:{fr:"🛒 Panier",en:"🛒 Cart",zh:"🛒 购物车",es:"🛒 Carrito"},
+  ost_new:{fr:"Reçue",en:"Received",zh:"已收到",es:"Recibida"},
+  ost_confirmed:{fr:"Confirmée",en:"Confirmed",zh:"已确认",es:"Confirmada"},
+  ost_delivered:{fr:"Livrée",en:"Delivered",zh:"已送达",es:"Entregada"},
+  ost_cancelled:{fr:"Annulée",en:"Cancelled",zh:"已取消",es:"Cancelada"},
+  ost_pending:{fr:"En attente",en:"Pending",zh:"待处理",es:"Pendiente"},
+  ost_resolved:{fr:"Résolue",en:"Resolved",zh:"已解决",es:"Resuelta"},
+  track_eyebrow:{fr:"Suivi de commande",en:"Order tracking",zh:"订单跟踪",es:"Seguimiento de pedido"},
+  track_loading:{fr:"Chargement de la commande…",en:"Loading order…",zh:"正在加载订单…",es:"Cargando pedido…"},
+  track_notfound:{fr:"Commande introuvable",en:"Order not found",zh:"未找到订单",es:"Pedido no encontrado"},
+  track_notfound2:{fr:"Cette commande n'a pas été trouvée. Vérifiez le QR code ou contactez DISTRIVIA.",en:"This order was not found. Check the QR code or contact DISTRIVIA.",zh:"未找到此订单。请检查二维码或联系 DISTRIVIA。",es:"No se encontró este pedido. Verifique el código QR o contacte a DISTRIVIA."},
+  track_home:{fr:"Retour à l'accueil",en:"Back to home",zh:"返回首页",es:"Volver al inicio"},
 };
 function t(key){ const e=I18N[key]; if(!e) return key; return e[lang]||e.fr||key; }
 function setLang(l){ lang=l; try{ localStorage.setItem("distrivia-lang",l); }catch(e){} render(); if(view==="client"||view==="supplier") renderAcctBody(); if(view==="client-auth"||view==="supplier-auth") renderAuthBody(); }
@@ -532,33 +659,33 @@ function render(){
 let trackOrder = null;     // commande chargée via QR (?cmd=)
 let trackLoading = false;
 function vTrack(){
-  if(trackLoading) return `<section><div class="wrap"><div class="card" style="text-align:center;padding:40px"><p class="muted">Chargement de la commande…</p></div></div></section>`;
+  if(trackLoading) return `<section><div class="wrap"><div class="card" style="text-align:center;padding:40px"><p class="muted">${t("track_loading")}</p></div></div></section>`;
   if(!trackOrder) return `<section><div class="wrap"><div class="card" style="text-align:center;padding:40px">
-    <h2 style="color:var(--bleu)">Commande introuvable</h2>
-    <p class="muted">Cette commande n'a pas été trouvée. Vérifiez le QR code ou contactez DISTRIVIA.</p>
-    <button class="btn" style="margin-top:14px" onclick="go('home')">Retour à l'accueil</button></div></div></section>`;
+    <h2 style="color:var(--bleu)">${t("track_notfound")}</h2>
+    <p class="muted">${t("track_notfound2")}</p>
+    <button class="btn" style="margin-top:14px" onclick="go('home')">${t("track_home")}</button></div></div></section>`;
   const o = trackOrder;
-  const statusLabels = {pending:"En préparation",delivered:"Livrée",paid:"Livrée & payée",cancelled:"Annulée",confirmed:"Confirmée",new:"Reçue"};
+  const statusLabels = {pending:t("ost_pending"),delivered:t("ost_delivered"),paid:t("ost_delivered"),cancelled:t("ost_cancelled"),confirmed:t("ost_confirmed"),new:t("ost_new")};
   const items = (o.items||o.lines||[]);
   return `<section><div class="wrap" style="max-width:640px">
-    <div class="eyebrow">Suivi de commande</div>
+    <div class="eyebrow">${t("track_eyebrow")}</div>
     <h2 class="title" style="margin-bottom:6px">${esc(o.num||o.ref||"")}</h2>
     <div class="card" style="padding:22px">
       <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;padding-bottom:12px;margin-bottom:12px">
-        <div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Statut</div>
-          <div style="font-size:18px;font-weight:800;color:var(--bleu)">${statusLabels[o.status]||o.status||"En cours"}</div></div>
-        <div style="text-align:right"><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">Date</div>
+        <div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">${t("inv_col_status")}</div>
+          <div style="font-size:18px;font-weight:800;color:var(--bleu)">${statusLabels[o.status]||o.status||""}</div></div>
+        <div style="text-align:right"><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px">${t("inv_col_date")}</div>
           <div style="font-weight:700">${esc((o.date||o.created||"").slice(0,10))}</div></div>
       </div>
-      ${o.clientName||o.client_name?`<p style="margin-bottom:10px"><b>Client :</b> ${esc(o.clientName||o.client_name)}${o.matricule?" ("+esc(o.matricule)+")":""}</p>`:""}
+      ${o.clientName||o.client_name?`<p style="margin-bottom:10px"><b>${t("inv_billed")||"Client"} :</b> ${esc(o.clientName||o.client_name)}${o.matricule?" ("+esc(o.matricule)+")":""}</p>`:""}
       <table style="width:100%;border-collapse:collapse;font-size:14px">
-        <tr style="background:var(--bleu);color:#fff"><th style="padding:8px 10px;text-align:left">Article</th><th style="padding:8px 10px;text-align:right">Qté</th></tr>
+        <tr style="background:var(--bleu);color:#fff"><th style="padding:8px 10px;text-align:left">${t("ord_col_articles")}</th><th style="padding:8px 10px;text-align:right">${t("appt_subject")==="Objet"?"Qté":"Qty"}</th></tr>
         ${items.map(it=>`<tr><td style="padding:8px 10px;border-bottom:1px solid #eee">${esc(it.name||prodN(it.productId))}</td><td style="padding:8px 10px;text-align:right;border-bottom:1px solid #eee">${it.qty||0}</td></tr>`).join("")}
       </table>
-      ${o.total?`<div style="text-align:right;margin-top:12px;font-size:17px;font-weight:800;color:var(--bleu)">Total : ${money(o.total)}</div>`:""}
-      <div style="margin-top:16px;text-align:center;color:#888;font-size:12px;border-top:1px solid #eee;padding-top:12px">DISTRIVIA · Livraison 48 h sur Dakar · contact@distrivia.sn</div>
+      ${o.total?`<div style="text-align:right;margin-top:12px;font-size:17px;font-weight:800;color:var(--bleu)">${t("inv_col_total")} : ${money(o.total)}</div>`:""}
+      <div style="margin-top:16px;text-align:center;color:#888;font-size:12px;border-top:1px solid #eee;padding-top:12px">DISTRIVIA · ${t("ft_hours2")} · contact@distrivia.sn</div>
     </div>
-    <div style="text-align:center;margin-top:16px"><button class="btn ghost" onclick="go('home')">Accueil DISTRIVIA</button></div>
+    <div style="text-align:center;margin-top:16px"><button class="btn ghost" onclick="go('home')">${t("track_home")}</button></div>
   </div></section>`;
 }
 function prodN(id){ const p=catalogProducts.find(p=>p.name===id||p.id===id); return p?p.name:""; }
@@ -608,12 +735,12 @@ function footer(){
   return `<footer><div class="wrap">
     <div class="cols">
       <div><div class="wordmark" style="font-size:18px">DISTRIVIA</div><div class="bar"></div>
-        <p style="margin-top:10px">Le premier réseau de distribution de consommables jetables et durables au Sénégal.</p></div>
-      <div><h4>NAVIGATION</h4><a onclick="go('catalog')">Catalogue</a><a onclick="go('services')">Services</a><a onclick="go('client-auth')">Espace client</a><a onclick="go('supplier-auth')">Espace fournisseur</a></div>
-      <div><h4>CONTACT</h4><p>📞 +221 77 527 82 24</p><p>✉️ contact@distrivia.sn</p><p>📍 Dakar, Sénégal</p></div>
-      <div><h4>HORAIRES</h4><p>Lun – Sam : 8h – 19h</p><p>Livraison 48 h sur Dakar</p><p>Commande WhatsApp 7j/7</p></div>
+        <p style="margin-top:10px">${t("ft_tagline")}</p></div>
+      <div><h4>${t("ft_nav")}</h4><a onclick="go('catalog')">${t("nav_catalog")}</a><a onclick="go('services')">${t("nav_services")}</a><a onclick="go('client-auth')">${t("nav_client")}</a><a onclick="go('supplier-auth')">${t("nav_supplier")}</a></div>
+      <div><h4>${t("ft_contact")}</h4><p>📞 +221 77 527 82 24</p><p>✉️ contact@distrivia.sn</p><p>📍 Dakar, Sénégal</p></div>
+      <div><h4>${t("ft_hours")}</h4><p>${t("ft_hours1")}</p><p>${t("ft_hours2")}</p><p>${t("ft_hours3")}</p></div>
     </div>
-    <div class="copy">© ${new Date().getFullYear()} DISTRIVIA Distribution Group · Dakar, Sénégal · Tous droits réservés.</div>
+    <div class="copy">© ${new Date().getFullYear()} DISTRIVIA Distribution Group · Dakar, Sénégal · ${t("ft_rights")}</div>
   </div></footer>`;
 }
 function shell(content){ return header()+content+footer(); }
@@ -622,54 +749,54 @@ function shell(content){ return header()+content+footer(); }
 function vHome(){
   return `
   <div class="hero"><div class="wrap">
-    <h1>Vos consommables livrés en <span class="acc">48 h</span> sur Dakar.</h1>
-    <p>Emballages, vaisselle jetable, hygiène, médical, événementiel, écologique, bureautique — en gros et demi-gros, pour les professionnels comme pour les particuliers.</p>
+    <h1>${t("hero_title_a")} <span class="acc">48 h</span> ${t("hero_title_b")}</h1>
+    <p>${t("hero_sub")}</p>
     <div class="actions">
-      <button class="btn lg" onclick="go('client-auth')">Commander maintenant</button>
-      <button class="btn lg ghost" onclick="go('catalog')">Voir le catalogue</button>
+      <button class="btn lg" onclick="go('client-auth')">${t("hero_cta1")}</button>
+      <button class="btn lg ghost" onclick="go('catalog')">${t("hero_cta2")}</button>
     </div>
     <div class="heroband">
-      <div class="it"><span class="n">7</span><span class="l">FAMILLES DE PRODUITS</span></div>
-      <div class="it"><span class="n">48 h</span><span class="l">DÉLAI DE LIVRAISON</span></div>
-      <div class="it"><span class="n">100 %</span><span class="l">CONFORME ANTI-PLASTIQUE</span></div>
+      <div class="it"><span class="n">7</span><span class="l">${t("hero_band1")}</span></div>
+      <div class="it"><span class="n">48 h</span><span class="l">${t("hero_band2")}</span></div>
+      <div class="it"><span class="n">100 %</span><span class="l">${t("hero_band3")}</span></div>
     </div>
   </div></div>
 
   <div id="ann-box">${announcementsHTML()}</div>
 
   <section><div class="wrap">
-    <div class="eyebrow">Pourquoi DISTRIVIA</div>
-    <h2 class="title">Un seul fournisseur, tout votre approvisionnement</h2>
-    <p class="lead">Nous combinons prix de gros, stock permanent, livraison fiable et conformité réglementaire — ce qu'aucun acteur du marché ne réunit aujourd'hui.</p>
+    <div class="eyebrow">${t("why_eyebrow")}</div>
+    <h2 class="title">${t("why_title")}</h2>
+    <p class="lead">${t("why_lead")}</p>
     <div class="grid g4">
       ${SERVICES.map(s=>`<div class="card"><div class="ico">${s.emoji}</div><h3>${s.t}</h3><p>${s.d}</p></div>`).join("")}
     </div>
   </div></section>
 
   <section style="background:#fff"><div class="wrap">
-    <div class="eyebrow">Deux espaces dédiés</div>
-    <h2 class="title">Clients et fournisseurs, chacun chez soi</h2>
+    <div class="eyebrow">${t("spaces_eyebrow")}</div>
+    <h2 class="title">${t("spaces_title")}</h2>
     <div class="grid g2" style="margin-top:24px">
       <div class="card" style="background:var(--creme)">
-        <div class="ico">🛒</div><h3>Espace client</h3>
-        <p style="margin-bottom:14px">Créez votre compte, parcourez le catalogue, passez commande, prenez rendez-vous et suivez vos livraisons. Adressez vos réclamations en un clic.</p>
-        <button class="btn" onclick="go('client-auth')">Accéder à l'espace client</button>
+        <div class="ico">🛒</div><h3>${t("space_client_t")}</h3>
+        <p style="margin-bottom:14px">${t("space_client_d")}</p>
+        <button class="btn" onclick="go('client-auth')">${t("space_client_btn")}</button>
       </div>
       <div class="card" style="background:var(--bleu); color:#fff">
-        <div class="ico" style="background:var(--bleu2)">🏭</div><h3 style="color:#fff">Espace fournisseur</h3>
-        <p style="margin-bottom:14px; color:#C9D4E2">Référencez votre entreprise, répondez à nos appels d'offres, envoyez vos cotations et suivez vos commandes d'achat avec DISTRIVIA.</p>
-        <button class="btn b" onclick="go('supplier-auth')">Accéder à l'espace fournisseur</button>
+        <div class="ico" style="background:var(--bleu2)">🏭</div><h3 style="color:#fff">${t("space_sup_t")}</h3>
+        <p style="margin-bottom:14px; color:#C9D4E2">${t("space_sup_d")}</p>
+        <button class="btn b" onclick="go('supplier-auth')">${t("space_sup_btn")}</button>
       </div>
     </div>
   </div></section>
 
   <section><div class="wrap">
-    <div class="eyebrow">Le catalogue</div>
-    <h2 class="title">Sept familles pour toutes vos occasions</h2>
+    <div class="eyebrow">${t("fam_eyebrow")}</div>
+    <h2 class="title">${t("fam_title")}</h2>
     <div class="grid g3" style="margin-top:24px">
       ${FAMILIES.slice(0,6).map(f=>`<div class="fam"><div class="top"><span class="emoji">${f.emoji}</span><div><h3>${f.name}</h3><span class="tag">${f.tag}</span></div></div></div>`).join("")}
     </div>
-    <div style="text-align:center; margin-top:28px"><button class="btn outline" onclick="go('catalog')">Voir tout le catalogue</button></div>
+    <div style="text-align:center; margin-top:28px"><button class="btn outline" onclick="go('catalog')">${t("fam_see_all")}</button></div>
   </div></section>`;
 }
 
@@ -750,18 +877,18 @@ window.quickOrder=quickOrder;
 /* ---------- SERVICES ---------- */
 function vServices(){
   const services = [
-    {e:"🚚",t:"Livraison 48 h",d:"Sur tout Dakar et la petite côte. Suivi de commande par QR code, livraison fiable et ponctuelle.",c:"terra"},
-    {e:"📦",t:"Gros & demi-gros",d:"Du carton à la palette. Prix dégressifs selon les volumes, stock permanent sur les références clés.",c:"bleu"},
-    {e:"📅",t:"Rendez-vous commercial",d:"Planifiez une visite de notre équipe ou un passage à l'entrepôt depuis votre espace client.",c:"vert"},
-    {e:"🤝",t:"Contrats grands comptes",d:"Hôtels, cliniques, chaînes de restauration : conditions annuelles, prix négociés, conformité garantie.",c:"bleu"},
-    {e:"💬",t:"Support & messagerie",d:"Une question, un souci ? Discutez en direct avec notre équipe depuis votre espace, comme sur WhatsApp.",c:"terra"},
-    {e:"🌱",t:"Gamme écologique",d:"Alternatives biodégradables conformes à la loi 2020-04 : fibre de canne, PLA, bambou, kraft.",c:"vert"},
+    {e:"🚚",t:t("svc1_t"),d:t("svc1_d"),c:"terra"},
+    {e:"📦",t:t("svc2_t"),d:t("svc2_d"),c:"bleu"},
+    {e:"📅",t:t("svc3_t"),d:t("svc3_d"),c:"vert"},
+    {e:"🤝",t:t("svc4_t"),d:t("svc4_d"),c:"bleu"},
+    {e:"💬",t:t("svc5_t"),d:t("svc5_d"),c:"terra"},
+    {e:"🌱",t:t("svc6_t"),d:t("svc6_d"),c:"vert"},
   ];
   const col={terra:"var(--terra)",bleu:"var(--bleu)",vert:"#2E6B3E"};
   return `<section><div class="wrap">
-    <div class="eyebrow">Nos services</div>
-    <h2 class="title">Bien plus qu'un fournisseur</h2>
-    <p class="lead">DISTRIVIA combine prix de gros, logistique fiable et accompagnement de proximité.</p>
+    <div class="eyebrow">${t("svc_eyebrow")}</div>
+    <h2 class="title">${t("svc_title")}</h2>
+    <p class="lead">${t("svc_lead")}</p>
     <div class="svc-grid">
       ${services.map(s=>`<div class="svc-card" style="--svc:${col[s.c]}">
         <div class="svc-ic">${s.e}</div>
@@ -770,7 +897,7 @@ function vServices(){
       </div>`).join("")}
     </div>
     <div style="text-align:center;margin-top:34px">
-      <button class="btn lg" onclick="go('client-auth')">Ouvrir mon espace client</button>
+      <button class="btn lg" onclick="go('client-auth')">${t("svc_open_client")}</button>
     </div>
   </div></section>`;
 }
@@ -778,31 +905,31 @@ function vServices(){
 /* ---------- CONTACT ---------- */
 function vContact(){
   return `<section><div class="wrap">
-    <div class="eyebrow">Contact</div>
-    <h2 class="title">Parlons de votre approvisionnement</h2>
+    <div class="eyebrow">${t("ct_eyebrow")}</div>
+    <h2 class="title">${t("ct_title")}</h2>
     <div class="grid g2" style="margin-top:10px">
       <div class="panel" style="margin:0">
-        <h3 style="color:var(--bleu); margin-bottom:14px">Écrivez-nous</h3>
-        <label>Votre nom</label><input id="ct-name">
-        <label>Téléphone ou email</label><input id="ct-contact">
-        <label>Message</label><textarea id="ct-msg" placeholder="Votre besoin, vos volumes, votre zone…"></textarea>
-        <div class="row" style="margin-top:14px"><button class="btn" onclick="sendContact()">Envoyer le message</button>
-        <a class="btn outline" href="https://wa.me/221775278224" target="_blank" style="text-decoration:none">WhatsApp direct</a></div>
+        <h3 style="color:var(--bleu); margin-bottom:14px">${t("ct_write")}</h3>
+        <label>${t("ct_name")}</label><input id="ct-name">
+        <label>${t("ct_contact")}</label><input id="ct-contact">
+        <label>${t("ct_msg")}</label><textarea id="ct-msg" placeholder="${t("ct_msg_ph")}"></textarea>
+        <div class="row" style="margin-top:14px"><button class="btn" onclick="sendContact()">${t("ct_send")}</button>
+        <a class="btn outline" href="https://wa.me/221775278224" target="_blank" style="text-decoration:none">${t("ct_whatsapp")}</a></div>
         <div id="ct-fb"></div>
       </div>
       <div>
-        <div class="card" style="margin-bottom:16px"><h3>📞 Téléphone & WhatsApp</h3><p>+221 77 527 82 24</p></div>
-        <div class="card" style="margin-bottom:16px"><h3>✉️ Email</h3><p>contact@distrivia.sn</p></div>
-        <div class="card" style="margin-bottom:16px"><h3>📍 Adresse</h3><p>Dakar, Sénégal</p></div>
-        <div class="card"><h3>🕐 Horaires</h3><p>Lundi – Samedi : 8h – 19h · Livraison 48 h sur Dakar</p></div>
+        <div class="card" style="margin-bottom:16px"><h3>${t("ct_phone_t")}</h3><p>+221 77 527 82 24</p></div>
+        <div class="card" style="margin-bottom:16px"><h3>${t("ct_email_t")}</h3><p>contact@distrivia.sn</p></div>
+        <div class="card" style="margin-bottom:16px"><h3>${t("ct_addr_t")}</h3><p>Dakar, Sénégal</p></div>
+        <div class="card"><h3>${t("ct_hours_t")}</h3><p>${t("ct_hours_v")}</p></div>
       </div>
     </div>
   </div></section>`;
 }
 function sendContact(){
   const name=el("ct-name").value.trim(), contact=el("ct-contact").value.trim(), msg=el("ct-msg").value.trim();
-  if(!name||!contact||!msg){ el("ct-fb").innerHTML=`<div class="err">Merci de remplir tous les champs.</div>`; return; }
-  el("ct-fb").innerHTML=`<div class="ok">Message envoyé. Nous vous recontactons sous 24 h ouvrées.</div>`;
+  if(!name||!contact||!msg){ el("ct-fb").innerHTML=`<div class="err">${t("ct_fill_all")}</div>`; return; }
+  el("ct-fb").innerHTML=`<div class="ok">${t("ct_sent")}</div>`;
   el("ct-name").value=el("ct-contact").value=el("ct-msg").value="";
 }
 
@@ -959,18 +1086,19 @@ async function renderAcctBody(){
 let _ordersCache = {};   // id -> order (pour le détail)
 async function clientOrdersHTML(){
   const list=await dbList("portal_orders","client_id",session.id);
-  if(!list.length) return `<div class="card" style="text-align:center"><p style="margin-bottom:14px">Vous n'avez pas encore passé de commande.</p><button class="btn" onclick="setTab('new')">Passer ma première commande</button></div>`;
+  if(!list.length) return `<div class="card" style="text-align:center"><p style="margin-bottom:14px">${t("ord_none")}</p><button class="btn" onclick="setTab('new')">${t("tab_new")}</button></div>`;
   _ordersCache = {};
   list.forEach(o=>{ _ordersCache[o.id||o.ref] = o; });
   return `<div class="tablewrap"><table>
-    <tr><th>N°</th><th>Date</th><th>Articles</th><th>Statut</th><th></th></tr>
+    <tr><th>${t("ord_col_ref")}</th><th>${t("inv_col_date")}</th><th>${t("ord_col_articles")}</th><th>${t("inv_col_status")}</th><th></th></tr>
     ${list.map(o=>`<tr><td><b>${esc(o.ref)}</b></td><td>${(o.created||"").slice(0,10)}</td>
       <td>${(o.items||[]).map(i=>i.qty+"× "+esc(i.name)).join(", ")}</td>
-      <td><span class="badge ${o.status}">${statusLabel(o.status)}</span></td>
-      <td><button class="btn sm outline" data-vieworder="${esc(o.id||o.ref)}">Détails</button></td></tr>`).join("")}
+      <td><span class="badge ${o.status}">${orderStatusLabel(o.status)}</span></td>
+      <td><button class="btn sm outline" data-vieworder="${esc(o.id||o.ref)}">${t("ord_details")}</button></td></tr>`).join("")}
   </table></div>`;
 }
 function statusLabel(s){ return {new:"Reçue",confirmed:"Confirmée",delivered:"Livrée",cancelled:"Annulée",pending:"En attente",resolved:"Résolue"}[s]||s; }
+function orderStatusLabel(s){ const m={new:"ost_new",confirmed:"ost_confirmed",delivered:"ost_delivered",cancelled:"ost_cancelled",pending:"ost_pending",resolved:"ost_resolved"}; return m[s]?t(m[s]):s; }
 
 /* ===== Mes factures (lecture depuis Gestion) ===== */
 let _invoiceCache = {};
@@ -1162,26 +1290,64 @@ async function clientApptHTML(){
   const list=await dbList("portal_appointments","client_id",session.id);
   return `<div class="grid g2">
     <div class="panel" style="margin:0">
-      <h3 style="color:var(--bleu); margin-bottom:10px">Prendre rendez-vous</h3>
-      <label>Objet</label><select id="ap-type"><option>Visite commerciale</option><option>Devis sur mesure</option><option>Visite de l'entrepôt</option><option>Ouverture de compte pro</option><option>Autre</option></select>
-      <div class="grid2"><div><label>Date souhaitée</label><input id="ap-date" type="date" min="${today()}"></div>
-        <div><label>Créneau</label><select id="ap-slot"><option>Matin (8h–12h)</option><option>Après-midi (14h–18h)</option></select></div></div>
-      <label>Message (facultatif)</label><textarea id="ap-note" placeholder="Précisez votre besoin…"></textarea>
-      <button class="btn full" style="margin-top:14px" onclick="submitAppt()">Demander le rendez-vous</button>
+      <h3 style="color:var(--bleu); margin-bottom:10px">${t("appt_take")}</h3>
+      <label>${t("appt_subject")}</label><select id="ap-type"><option value="visit_comm">${t("appt_visit_comm")}</option><option value="quote">${t("appt_quote")}</option><option value="visit_wh">${t("appt_visit_wh")}</option><option value="open_acct">${t("appt_open_acct")}</option><option value="other">${t("appt_other")}</option></select>
+      <div class="grid2"><div><label>${t("appt_date")}</label><input id="ap-date" type="date" min="${today()}"></div>
+        <div><label>${t("appt_slot")}</label><select id="ap-slot"><option value="am">${t("appt_morning")}</option><option value="pm">${t("appt_afternoon")}</option></select></div></div>
+      <label>${t("appt_msg")}</label><textarea id="ap-note" placeholder="${t("appt_msg_ph")}"></textarea>
+      <button class="btn full" style="margin-top:14px" id="ap-submit" onclick="submitAppt()">${t("appt_request")}</button>
       <div id="ap-fb"></div>
     </div>
-    <div>${list.length?`<div class="tablewrap"><table><tr><th>Objet</th><th>Date</th><th>Statut</th></tr>
-      ${list.map(a=>`<tr><td>${esc(a.subject)}</td><td>${esc(a.date)} · ${esc(a.slot)}</td><td><span class="badge ${a.status}">${statusLabel(a.status)}</span></td></tr>`).join("")}</table></div>`
-      :`<div class="card"><p class="muted">Aucun rendez-vous pour l'instant.</p></div>`}</div>
+    <div>${list.length?`<div class="tablewrap"><table><tr><th>${t("appt_subject")}</th><th>${t("appt_when")}</th><th>${t("inv_col_status")}</th><th></th></tr>
+      ${list.sort((a,b)=>(a.created<b.created?1:-1)).map(a=>{
+        const subj = a.subjectKey?t("appt_"+a.subjectKey):(a.subject||"");
+        const slot = a.slotKey?(a.slotKey==="am"?t("appt_morning"):t("appt_afternoon")):(a.slot||"");
+        const canCancel = a.status==="pending"||a.status==="confirmed";
+        return `<tr><td>${esc(subj)}</td><td>${esc(a.date||"")} · ${esc(slot)}</td><td><span class="badge ${a.status}">${apptStatusLabel(a.status)}</span>${a.cancelReason?`<div class="muted" style="font-size:11px">${esc(a.cancelReason)}</div>`:""}</td>
+        <td>${canCancel?`<button class="btn sm outline" onclick="cancelApptUI('${esc(a.id)}')">${t("appt_cancel")}</button>`:""}</td></tr>`;
+      }).join("")}</table></div>`
+      :`<div class="card"><p class="muted">${t("appt_none")}</p></div>`}</div>
   </div>`;
 }
+function apptStatusLabel(s){ const m={pending:"appt_st_pending",confirmed:"appt_st_confirmed",cancelled:"appt_st_cancelled",done:"appt_st_done"}; return m[s]?t(m[s]):statusLabel(s); }
 function bindAppt(){}
+let _apptSubmitting=false;
 async function submitAppt(){
-  const date=el("ap-date").value; if(!date){ el("ap-fb").innerHTML=`<div class="err">Choisissez une date.</div>`; return; }
-  const row={ id:uid(), client_id:session.id, client_name:session.name, subject:el("ap-type").value, date, slot:el("ap-slot").value, note:el("ap-note").value.trim(), status:"pending", created:nowISO() };
-  try{ await dbInsert("portal_appointments", row); render(); toast("Demande de rendez-vous envoyée ✓"); }
+  if(_apptSubmitting) return;
+  const date=el("ap-date").value; if(!date){ el("ap-fb").innerHTML=`<div class="err">${t("appt_pick_date")}</div>`; return; }
+  _apptSubmitting=true; const btn=el("ap-submit"); if(btn){ btn.disabled=true; btn.textContent=t("loading"); }
+  const typeSel=el("ap-type"), slotSel=el("ap-slot");
+  const row={ id:uid(), client_id:session.id, client_name:session.name, client_email:session.email||"",
+    subjectKey:typeSel.value, subject:typeSel.options[typeSel.selectedIndex].text,
+    date, slotKey:slotSel.value, slot:slotSel.options[slotSel.selectedIndex].text,
+    note:el("ap-note").value.trim(), status:"pending", created:nowISO() };
+  try{ await dbInsert("portal_appointments", row); toast(t("appt_sent"));
+    if(view==="client"||view==="supplier") renderAcctBody();
+  }
   catch(e){ el("ap-fb").innerHTML=`<div class="err">${esc(e.message)}</div>`; }
+  finally{ _apptSubmitting=false; }
 }
+// Annulation d'un rendez-vous par le client, avec motif
+function cancelApptUI(id){
+  openModal(`<div class="row" style="justify-content:space-between"><h3 style="color:var(--bleu)">${t("appt_cancel_title")}</h3><button class="x" onclick="closeModal()">×</button></div>
+    <p class="muted" style="margin-bottom:8px">${t("appt_cancel_intro")}</p>
+    <label>${t("appt_cancel_reason")}</label>
+    <select id="apc-reason"><option value="conflict">${t("appt_reason_conflict")}</option><option value="reschedule">${t("appt_reason_reschedule")}</option><option value="nolonger">${t("appt_reason_nolonger")}</option><option value="other">${t("appt_other")}</option></select>
+    <input id="apc-other" placeholder="${t("appt_cancel_precise")}" style="margin-top:6px;display:none">
+    <div class="row" style="margin-top:14px;justify-content:flex-end;gap:8px"><button class="btn ghost" onclick="closeModal()">${t("appt_back")}</button><button class="btn" style="background:var(--rouge,#A33B3B)" id="apc-ok">${t("appt_confirm_cancel")}</button></div>`);
+  const sel=el("apc-reason"), other=el("apc-other");
+  sel.onchange=()=>{ other.style.display = sel.value==="other"?"block":"none"; };
+  el("apc-ok").onclick=async ()=>{
+    const reason = sel.value==="other" ? (other.value.trim()||t("appt_other")) : sel.options[sel.selectedIndex].text;
+    try{
+      if(CONFIGURED){ await fbReady(); await fdb.collection("portal_appointments").doc(id).update({ status:"cancelled", cancelReason:reason, cancelledAt:nowISO() }); }
+      else { const d=demoDB(); const a=(d.appointments||[]).find(x=>x.id===id); if(a){ a.status="cancelled"; a.cancelReason=reason; } demoSave(d); }
+      closeModal(); toast(t("appt_cancelled_ok"));
+      if(view==="client"||view==="supplier") renderAcctBody();
+    }catch(e){ toast(e.message||"Erreur"); }
+  };
+}
+window.cancelApptUI=cancelApptUI;
 
 /* ----- Client: claims / Supplier: messages ----- */
 /* ===== MESSAGERIE façon WhatsApp : UNE conversation par client ===== */
@@ -1312,11 +1478,12 @@ async function submitQuote(){
 /* ----- Profile ----- */
 function profileHTML(){
   return `<div class="panel" style="margin:0">
-    <h3 style="color:var(--bleu); margin-bottom:10px">Mon profil</h3>
-    <p><b>Nom :</b> ${esc(session.name)}</p>
-    <p><b>Email :</b> ${esc(session.email)}</p>
-    <p class="muted" style="margin-top:14px">Pour modifier vos informations, contactez-nous au +221 77 527 82 24.</p>
-    <button class="btn outline" style="margin-top:14px" onclick="logout()">Se déconnecter</button>
+    <h3 style="color:var(--bleu); margin-bottom:10px">${t("prof_title")}</h3>
+    <p><b>${t("prof_name")} :</b> ${esc(session.name)}</p>
+    <p><b>${t("prof_email")} :</b> ${esc(session.email)}</p>
+    ${session.phone?`<p><b>${t("prof_phone")} :</b> ${esc(session.phone)}</p>`:""}
+    <p class="muted" style="margin-top:14px">${t("ct_phone_t")} : +221 77 527 82 24</p>
+    <button class="btn outline" style="margin-top:14px" onclick="logout()">${t("prof_logout")}</button>
   </div>`;
 }
 
