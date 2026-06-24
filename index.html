@@ -2,8 +2,14 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>DISTRIVIA — Espace client & fournisseur</title>
+<meta name="theme-color" content="#0F2A4A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DISTRIVIA">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F2A4A'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='34' font-weight='bold' fill='white' text-anchor='middle'%3ED%3C/text%3E%3Crect x='20' y='48' width='24' height='4' fill='%23C85E2D'/%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -20,6 +26,7 @@
 
   /* HEADER */
   header{background:var(--bleu); position:sticky; top:0; z-index:30;}
+  .topbar{position:relative;}
   .topbar{display:flex; align-items:center; justify-content:space-between; padding:12px 16px; max-width:1080px; margin:0 auto; gap:12px; flex-wrap:wrap;}
   .brand{display:flex; flex-direction:column;}
   .wordmark{color:#fff; font-weight:800; letter-spacing:5px; font-size:20px;}
@@ -175,7 +182,24 @@
   #toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--bleu); color:#fff; padding:13px 22px; border-radius:10px; font-weight:600; display:none; z-index:80; box-shadow:var(--ombre2);}
   .cfgbanner{background:#FCEFE7; border-bottom:1px solid var(--terra); color:#8a3f1b; font-size:13px; padding:8px 16px; text-align:center;}
   .hide{display:none !important;}
+  .navtoggle{display:none; background:none; border:none; color:#fff; font-size:24px; cursor:pointer; padding:4px 8px;}
+  @media(max-width:760px){
+    .navtoggle{display:block;}
+    .topbar{flex-wrap:nowrap;}
+    .navlinks{display:none; position:absolute; top:100%; left:0; right:0; background:var(--bleu); flex-direction:column; align-items:stretch; gap:2px; padding:8px 12px 14px; box-shadow:0 12px 30px rgba(0,0,0,.3); z-index:50;}
+    .navlinks.open{display:flex;}
+    .navlinks button{width:100%; text-align:left; padding:12px 14px; font-size:15px;}
+    .navlinks .langsel{margin-top:6px; width:100%;}
+  }
   @media(max-width:640px){ .hero h1{font-size:32px;} h2.title{font-size:24px;} section{padding:40px 0;} .topbar{padding:10px 14px;} }
+  @media(max-width:520px){
+    .wrap{padding-left:16px; padding-right:16px;}
+    .grid,.cards,.catalog-grid,[class*="cols"]{grid-template-columns:1fr !important;}
+    .hero h1{font-size:27px;}
+    table{display:block; overflow-x:auto; white-space:nowrap;}
+    .modal-card,.card{border-radius:14px;}
+    body{padding-bottom:env(safe-area-inset-bottom);}
+  }
 </style>
 </head>
 <body>
@@ -255,6 +279,16 @@ let session = null;         // {kind:"client"|"supplier", id, name, email, ...}
 let acctTab = "orders";
 let cart = [];              // [{name, family, qty, note}]
 let catalogProducts = [];   // produits venant de Gestion/Supabase (sinon FAMILIES)
+// Coordonnées entreprise (lues depuis Gestion, valeurs par défaut sinon)
+let COMPANY = {
+  name:"DISTRIVIA", tagline:"DISTRIBUTION GROUP",
+  slogan:"Le premier réseau de distribution de consommables jetables et durables au Sénégal.",
+  phone1:"+221 77 527 82 24", phone2:"+221 77 764 88 24", whatsapp:"221775278224",
+  email:"contact@distrivia.sn", address:"Dakar, Sénégal", website:"distrivia.sn",
+  hours:"Lundi – Samedi : 8h – 19h", hours2:"Livraison 48 h sur Dakar", hours3:"Commande WhatsApp 7j/7",
+  logo:"", ninea:"", rccm:""
+};
+try{ const cc=localStorage.getItem("distrivia-portail-company"); if(cc) COMPANY=Object.assign(COMPANY, JSON.parse(cc)); }catch(e){}
 let announcements = [];     // annonces publiées depuis Gestion (promos, infos)
 let modalContent = null;
 let lang = (function(){ try{ return localStorage.getItem("distrivia-lang")||"fr"; }catch(e){ return "fr"; } })();
@@ -583,6 +617,13 @@ async function loadCatalog(force){
     if(snap.exists){
       const blob = snap.data().blob;
       if(blob){ const S = JSON.parse(blob);
+        // Coordonnées entreprise éditées dans Gestion
+        if(S.settings && S.settings.company){
+          COMPANY = Object.assign(COMPANY, S.settings.company);
+          if(S.settings.ninea) COMPANY.ninea = S.settings.ninea;
+          if(S.settings.rccm) COMPANY.rccm = S.settings.rccm;
+          try{ localStorage.setItem("distrivia-portail-company", JSON.stringify(COMPANY)); }catch(e){}
+        }
         if(S.products && S.products.length){
           const promos = (S.promos||[]).filter(pr=>pr.active!==false && (!pr.expire || pr.expire>=new Date().toISOString().slice(0,10)));
           catalogProducts = S.products.map(p=>{
@@ -717,8 +758,9 @@ function header(){
   return `<header>
     ${!CONFIGURED?`<div class="cfgbanner">⚙️ Mode démonstration — les données restent sur cet appareil. Collez vos clés Firebase pour la liaison temps réel avec DISTRIVIA Gestion.</div>`:""}
     <div class="topbar">
-      <div class="brand" style="cursor:pointer" onclick="go('home')"><div class="wordmark">DISTRIVIA</div><div class="bar"></div><div class="sub">DISTRIBUTION GROUP</div></div>
-      <div class="navlinks">
+      <div class="brand" style="cursor:pointer" onclick="go('home')">${COMPANY.logo?`<img src="${COMPANY.logo}" alt="${esc(COMPANY.name)}" style="height:38px;width:auto;max-width:140px;object-fit:contain">`:`<div class="wordmark">${esc(COMPANY.name||"DISTRIVIA")}</div><div class="bar"></div><div class="sub">${esc(COMPANY.tagline||"DISTRIBUTION GROUP")}</div>`}</div>
+      <button class="navtoggle" onclick="document.querySelector('.navlinks').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+      <div class="navlinks" onclick="if(event.target.tagName==='BUTTON')document.querySelector('.navlinks').classList.remove('open')">
         <button onclick="go('home')" class="${view==='home'?'active':''}">${t("nav_home")}</button>
         <button onclick="go('catalog')" class="${view==='catalog'?'active':''}">${t("nav_catalog")}</button>
         <button onclick="go('services')" class="${view==='services'?'active':''}">${t("nav_services")}</button>
@@ -734,13 +776,13 @@ function header(){
 function footer(){
   return `<footer><div class="wrap">
     <div class="cols">
-      <div><div class="wordmark" style="font-size:18px">DISTRIVIA</div><div class="bar"></div>
-        <p style="margin-top:10px">${t("ft_tagline")}</p></div>
+      <div>${COMPANY.logo?`<img src="${COMPANY.logo}" style="height:34px;width:auto;max-width:130px;object-fit:contain;filter:brightness(0) invert(1)">`:`<div class="wordmark" style="font-size:18px">${esc(COMPANY.name||"DISTRIVIA")}</div><div class="bar"></div>`}
+        <p style="margin-top:10px">${esc(COMPANY.slogan||t("ft_tagline"))}</p></div>
       <div><h4>${t("ft_nav")}</h4><a onclick="go('catalog')">${t("nav_catalog")}</a><a onclick="go('services')">${t("nav_services")}</a><a onclick="go('client-auth')">${t("nav_client")}</a><a onclick="go('supplier-auth')">${t("nav_supplier")}</a></div>
-      <div><h4>${t("ft_contact")}</h4><p>📞 +221 77 527 82 24</p><p>✉️ contact@distrivia.sn</p><p>📍 Dakar, Sénégal</p></div>
-      <div><h4>${t("ft_hours")}</h4><p>${t("ft_hours1")}</p><p>${t("ft_hours2")}</p><p>${t("ft_hours3")}</p></div>
+      <div><h4>${t("ft_contact")}</h4>${COMPANY.phone1?`<p>📞 ${esc(COMPANY.phone1)}</p>`:""}<p>✉️ ${esc(COMPANY.email||"")}</p><p>📍 ${esc(COMPANY.address||"")}</p></div>
+      <div><h4>${t("ft_hours")}</h4>${COMPANY.hours?`<p>${esc(COMPANY.hours)}</p>`:""}${COMPANY.hours2?`<p>${esc(COMPANY.hours2)}</p>`:""}${COMPANY.hours3?`<p>${esc(COMPANY.hours3)}</p>`:""}</div>
     </div>
-    <div class="copy">© ${new Date().getFullYear()} DISTRIVIA Distribution Group · Dakar, Sénégal · ${t("ft_rights")}</div>
+    <div class="copy">© ${new Date().getFullYear()} ${esc(COMPANY.name||"DISTRIVIA")}${COMPANY.tagline?" "+esc(COMPANY.tagline):""} · ${esc(COMPANY.address||"Dakar, Sénégal")} · ${t("ft_rights")}</div>
   </div></footer>`;
 }
 function shell(content){ return header()+content+footer(); }
@@ -914,14 +956,14 @@ function vContact(){
         <label>${t("ct_contact")}</label><input id="ct-contact">
         <label>${t("ct_msg")}</label><textarea id="ct-msg" placeholder="${t("ct_msg_ph")}"></textarea>
         <div class="row" style="margin-top:14px"><button class="btn" onclick="sendContact()">${t("ct_send")}</button>
-        <a class="btn outline" href="https://wa.me/221775278224" target="_blank" style="text-decoration:none">${t("ct_whatsapp")}</a></div>
+        <a class="btn outline" href="https://wa.me/${esc(COMPANY.whatsapp||"221775278224")}" target="_blank" style="text-decoration:none">${t("ct_whatsapp")}</a></div>
         <div id="ct-fb"></div>
       </div>
       <div>
-        <div class="card" style="margin-bottom:16px"><h3>${t("ct_phone_t")}</h3><p>+221 77 527 82 24</p></div>
-        <div class="card" style="margin-bottom:16px"><h3>${t("ct_email_t")}</h3><p>contact@distrivia.sn</p></div>
-        <div class="card" style="margin-bottom:16px"><h3>${t("ct_addr_t")}</h3><p>Dakar, Sénégal</p></div>
-        <div class="card"><h3>${t("ct_hours_t")}</h3><p>${t("ct_hours_v")}</p></div>
+        <div class="card" style="margin-bottom:16px"><h3>${t("ct_phone_t")}</h3><p>${esc(COMPANY.phone1||"")}${COMPANY.phone2?" · "+esc(COMPANY.phone2):""}</p></div>
+        <div class="card" style="margin-bottom:16px"><h3>${t("ct_email_t")}</h3><p>${esc(COMPANY.email||"")}</p></div>
+        <div class="card" style="margin-bottom:16px"><h3>${t("ct_addr_t")}</h3><p>${esc(COMPANY.address||"")}</p></div>
+        <div class="card"><h3>${t("ct_hours_t")}</h3><p>${esc(COMPANY.hours||"")}${COMPANY.hours2?" · "+esc(COMPANY.hours2):""}</p></div>
       </div>
     </div>
   </div></section>`;
@@ -1517,10 +1559,12 @@ window.openModal=openModal; window.closeModal=closeModal; window.logout=logout;
     try{
       if(cmdParam){ loadTrackOrder(cmdParam); }
       await loadCatalog(); loadAnnouncements();
+      render(); // rafraîchit l'en-tête/pied avec les coordonnées à jour
       if(view==="client"&&acctTab==="new") renderAcctBody();
     }catch(e){ console.warn("Firebase init:",e); }
   }
 })();
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
 </script>
 </body>
 </html>
