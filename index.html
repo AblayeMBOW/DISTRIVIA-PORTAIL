@@ -183,6 +183,41 @@
   .cfgbanner{background:#FCEFE7; border-bottom:1px solid var(--terra); color:#8a3f1b; font-size:13px; padding:8px 16px; text-align:center;}
   .hide{display:none !important;}
   .navtoggle{display:none; background:none; border:none; color:#fff; font-size:24px; cursor:pointer; padding:4px 8px;}
+  .m-tabbar{display:none;}
+  .mp-app{display:none;}
+  @media(max-width:760px){
+    body{background:var(--creme);}
+    .mp-app{display:block; min-height:100vh; padding-bottom:74px;}
+    .mp-top{position:sticky; top:0; z-index:30; background:var(--bleu); color:#fff; display:flex; align-items:center; gap:12px; padding:calc(12px + env(safe-area-inset-top)) 16px 12px;}
+    .mp-top .mp-logo{display:flex; flex-shrink:0;}
+    .mp-back{background:rgba(255,255,255,.12); border:none; color:#fff; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;}
+    .mp-ttl{flex:1; min-width:0;} .mp-ttl b{font-size:18px; font-weight:800; letter-spacing:.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;}
+    .mp-lang{background:rgba(255,255,255,.12); color:#fff; border:none; border-radius:8px; padding:7px 8px; font-size:13px; font-weight:600;}
+    .mp-lang option{color:#1A1A1A;}
+    .mp-hero{background:linear-gradient(135deg,var(--bleu) 0%,#16365b 100%); color:#fff; padding:30px 22px 26px; border-radius:0 0 26px 26px;}
+    .mp-hero .mp-hi{font-size:26px; font-weight:800; letter-spacing:-.3px;}
+    .mp-hero .mp-sub{font-size:14px; opacity:.85; margin-top:8px; line-height:1.5;}
+    .mp-hero .mp-cta{margin-top:18px; background:var(--terra); color:#fff; border:none; padding:13px 22px; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 6px 18px rgba(200,94,45,.35);}
+    .mp-grid{display:grid; grid-template-columns:1fr 1fr; gap:13px; padding:20px 16px 8px;}
+    .mp-tile{background:#fff; border:none; border-radius:18px; padding:20px 14px; display:flex; flex-direction:column; align-items:center; gap:11px; cursor:pointer; box-shadow:0 4px 16px rgba(15,42,74,.07); transition:transform .15s;}
+    .mp-tile:active{transform:scale(.96);}
+    .mp-tile .mp-tile-ic{width:54px; height:54px; border-radius:15px; background:var(--creme); color:var(--bleu); display:flex; align-items:center; justify-content:center;}
+    .mp-tile .mp-tile-lab{font-size:13.5px; font-weight:700; color:var(--bleu); text-align:center; line-height:1.25;}
+    .mp-welcome{margin:8px 16px 20px; background:#fff; border-radius:14px; padding:14px 16px; font-size:13.5px; color:var(--gris); box-shadow:0 3px 12px rgba(15,42,74,.06);}
+    .mp-welcome a{color:var(--terra); font-weight:700;}
+    .mp-view header, .mp-view footer{display:none !important;}
+    .mp-view section{padding:18px 0;}
+    .mp-view .wrap{padding-left:16px; padding-right:16px;}
+    .mp-view .hero{border-radius:0;}
+  }
+  @media(max-width:760px){
+    .m-tabbar{display:flex; position:fixed; bottom:0; left:0; right:0; height:62px; background:#fff; border-top:1px solid #E8E2D4; z-index:60; padding-bottom:env(safe-area-inset-bottom); box-shadow:0 -3px 16px rgba(15,42,74,.1);}
+    .m-tabbar button{flex:1; background:none; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:var(--gris); cursor:pointer; padding:6px 0;}
+    .m-tabbar button i{font-style:normal; font-size:10.5px; font-weight:700;}
+    .m-tabbar button.active{color:var(--terra);}
+    footer{margin-bottom:62px;}            /* place pour la tab bar */
+    body{padding-bottom:env(safe-area-inset-bottom);}
+  }
   @media(max-width:760px){
     .navtoggle{display:block;}
     .topbar{flex-wrap:nowrap;}
@@ -692,9 +727,68 @@ function render(){
     "supplier-auth":()=>vAuth("supplier"), supplier:vSupplierSpace,
     catalog:vCatalog, services:vServices, contact:vContact, track:vTrack,
   }[view] || vHome;
-  el("app").innerHTML = shell(v());
+  if(isMobileP()){ return renderMobileP(v); }
+  el("app").innerHTML = shell(v()) + mobileTabBar();
   bind();
   window.scrollTo(0,0);
+}
+function isMobileP(){ return window.matchMedia && window.matchMedia("(max-width: 760px)").matches; }
+function renderMobileP(vfn){
+  const onHome = view==="home";
+  const titles = {home:"Accueil", catalog:t("nav_catalog"), services:t("nav_services"), contact:t("nav_contact"), track:t("track_eyebrow"), client:t("nav_myspace"), supplier:t("nav_myspace"), "client-auth":t("nav_client"), "supplier-auth":t("nav_supplier")};
+  el("app").innerHTML = `
+  <div class="mp-app">
+    <header class="mp-top">
+      ${onHome
+        ? `<span class="mp-logo">${COMPANY.logo?`<img src="${COMPANY.logo}" style="height:30px">`:mpLogo()}</span><div class="mp-ttl"><b>DISTRIVIA</b></div>`
+        : `<button class="mp-back" onclick="go('home')">${mpBackIco()}</button><div class="mp-ttl"><b>${esc(titles[view]||"")}</b></div>`}
+      <select class="mp-lang" onchange="setLang(this.value)" title="Langue">${Object.entries(LANGS).map(([code,label])=>`<option value="${code}" ${lang===code?"selected":""}>${code.toUpperCase()}</option>`).join("")}</select>
+    </header>
+    <div class="mp-content" id="mp-content">${onHome? vMobileHomeP() : `<div class="mp-view">${vfn()}</div>`}</div>
+    ${mobileTabBar()}
+  </div>`;
+  bind();
+  // refait la liaison des onglets/auth selon la vue
+  if(view==="client-auth"||view==="supplier-auth") renderAuthBody();
+  if(view==="client"||view==="supplier") renderAcctBody();
+  window.scrollTo(0,0);
+}
+function mpLogo(){ return `<svg width="30" height="30" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0F2A4A"/><text x="32" y="44" font-family="Arial" font-size="34" font-weight="bold" fill="#F5F1E8" text-anchor="middle">D</text><rect x="20" y="49" width="24" height="4" rx="2" fill="#C85E2D"/></svg>`; }
+function mpBackIco(){ return `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>`; }
+function vMobileHomeP(){
+  const logged=session;
+  const ic=(p)=>`<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  const tiles=[
+    ["catalog",t("nav_catalog"),'<path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/>'],
+    [logged?session.kind:"client-auth", logged?t("nav_myspace"):t("nav_client"),'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'],
+    ["track",t("track_eyebrow"),'<path d="M5 7h14M5 12h14M5 17h9"/><circle cx="19" cy="17" r="2"/>'],
+    ["services",t("nav_services"),'<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>'],
+    [logged?"":"supplier-auth",t("nav_supplier"),'<path d="M3 7h18v10H3zM7 7V4h10v3"/>'],
+    ["contact",t("nav_contact"),'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'],
+  ].filter(x=>x[0]!=="");
+  return `
+  <div class="mp-hero">
+    <div class="mp-hi">${esc(COMPANY.name||"DISTRIVIA")}</div>
+    <div class="mp-sub">${esc(COMPANY.slogan||t("hero_sub")||"Fournitures professionnelles livrées vite à Dakar")}</div>
+    <button class="mp-cta" onclick="go('catalog')">${t("hero_cta2")}</button>
+  </div>
+  <div class="mp-grid">
+    ${tiles.map(tl=>`<button class="mp-tile" onclick="go('${tl[0]}')"><span class="mp-tile-ic">${ic(tl[2])}</span><span class="mp-tile-lab">${esc(tl[1])}</span></button>`).join("")}
+  </div>
+  ${logged?`<div class="mp-welcome">${t("nav_myspace")} — <b>${esc(session.name||session.email||"")}</b> · <a onclick="logout()" style="cursor:pointer">${t("nav_logout")}</a></div>`:""}`;
+}
+// Barre d'onglets mobile (style app) — visible uniquement sur téléphone via CSS
+function mobileTabBar(){
+  const spaceView = session ? session.kind : "client-auth";
+  const spaceActive = (view==="client"||view==="supplier"||view==="client-auth"||view==="supplier-auth");
+  const ic=(p)=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  const tabs=[
+    ["home","Accueil",'<path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/>', view==="home"],
+    ["catalog","Catalogue",'<path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/>', view==="catalog"],
+    [spaceView,(session?"Mon espace":"Connexion"),'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>', spaceActive],
+    ["contact","Contact",'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>', view==="contact"],
+  ];
+  return `<nav class="m-tabbar">${tabs.map(t=>`<button class="${t[3]?'active':''}" onclick="go('${t[0]}')">${ic(t[2])}<i>${t[1]}</i></button>`).join("")}</nav>`;
 }
 
 let trackOrder = null;     // commande chargée via QR (?cmd=)
