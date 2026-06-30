@@ -1613,19 +1613,113 @@ async function submitDevis(){
   }catch(e){ toast("Erreur : "+(e.message||"envoi impossible")); }
 }
 window.submitDevis=submitDevis;
+
+/* ===== PDF devis (côté Portail, généré depuis les données rétro-écrites par Gestion) ===== */
+function pdfDevisPortail(d){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:"mm", format:"a4"});
+  const W = doc.internal.pageSize.getWidth();
+  const co = COMPANY||{};
+  // En-tête marque
+  doc.setFillColor(15,42,74); doc.rect(0,0,W,22,"F");
+  doc.setTextColor(245,241,232); doc.setFont("helvetica","bold"); doc.setFontSize(16);
+  doc.text("DISTRIVIA", 14, 14);
+  doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.text("DISTRIBUTION GROUP", 14, 19);
+  if(co.phone1||co.phone){ doc.setTextColor(200,200,200); doc.text((co.phone1||co.phone||"")+(co.email?" · "+co.email:""), W-14, 14, {align:"right"}); }
+  doc.setFillColor(200,94,45); doc.rect(0,22,W,2,"F");
+  // Badge devis
+  doc.setFillColor(200,94,45); doc.roundedRect(W-74,28,60,16,2,2,"F");
+  doc.setTextColor(255,235,225); doc.setFontSize(7); doc.setFont("helvetica","normal"); doc.text("DEVIS",W-70,34);
+  doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.text(d.localQuoteNum||d.ref||"",W-70,41);
+  // Dates
+  const frD=s=>{ if(!s) return ""; const p=(s||"").slice(0,10).split("-"); return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:s; };
+  doc.setTextColor(90,90,90); doc.setFont("helvetica","normal"); doc.setFontSize(9);
+  if(d.quoteDate) doc.text("Date : "+frD(d.quoteDate), W-14, 52, {align:"right"});
+  if(d.quoteValidity) doc.text("Valable jusqu'au "+frD(d.quoteValidity), W-14, 57, {align:"right"});
+  // Client
+  doc.setTextColor(140,140,140); doc.setFontSize(8); doc.text("DEVIS POUR", 14, 34);
+  doc.setTextColor(26,26,26); doc.setFont("helvetica","bold"); doc.setFontSize(12);
+  doc.text(d.quoteClientName||d.client_name||"Client", 14, 41);
+  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(80,80,80);
+  if(d.client_phone) doc.text(d.client_phone, 14, 47);
+  // Tableau
+  let y=70;
+  doc.setFillColor(15,42,74); doc.rect(14,y,W-28,8,"F");
+  doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(8.5);
+  doc.text("Désignation",16,y+5.5); doc.text("Qté",W-78,y+5.5,{align:"right"}); doc.text("P.U.",W-48,y+5.5,{align:"right"}); doc.text("Montant",W-16,y+5.5,{align:"right"});
+  y+=8; doc.setTextColor(40,40,40); doc.setFont("helvetica","normal"); doc.setFontSize(9);
+  const pm=n=>(Math.round(n)||0).toLocaleString("fr-FR").replace(/[\s\u202f\u00a0]/g," ")+" F";
+  const hasTva=d.quoteTva!==false && (d.quoteTvaAmt||0)>0;
+  (d.quoteLines||[]).forEach((l,i)=>{
+    if(y>250){ doc.addPage(); y=20; }
+    const ttc=(+l.qty||1)*(+l.price||0);
+    const puHT=hasTva?Math.round((+l.price||0)/(1+18/100)):(+l.price||0);
+    const lineHT=hasTva?Math.round(ttc/(1+18/100)):ttc;
+    if(i%2){ doc.setFillColor(245,241,232); doc.rect(14,y,W-28,7,"F"); }
+    doc.text(String(l.name||"").slice(0,52),16,y+5);
+    doc.text(String(+l.qty||1),W-78,y+5,{align:"right"});
+    doc.text(pm(puHT),W-48,y+5,{align:"right"});
+    doc.text(pm(lineHT),W-16,y+5,{align:"right"});
+    y+=7;
+  });
+  // Totaux
+  y+=4; const bx=W-90;
+  const ttc=+(d.quoteTotal||0), tva=+(d.quoteTvaAmt||0), ht=ttc-tva;
+  doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(80,80,80);
+  doc.text("Total HT",bx,y); doc.text(pm(ht),W-16,y,{align:"right"}); y+=6;
+  if(hasTva){ doc.text("TVA 18 %",bx,y); doc.text(pm(tva),W-16,y,{align:"right"}); y+=6; }
+  doc.setFillColor(245,241,232); doc.rect(bx-4,y-4.5,W-16-(bx-4)+4,9,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.setTextColor(200,94,45);
+  doc.text("TOTAL"+(hasTva?" TTC":""),bx,y+1.5); doc.text(pm(ttc),W-16,y+1.5,{align:"right"}); y+=12;
+  doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(90,90,90);
+  doc.text("Devis valable "+(d.quoteValidity?"jusqu'au "+frD(d.quoteValidity):"30 jours")+". Bon pour accord (date et signature) :", 14, y+4, {maxWidth:W-28});
+  doc.setDrawColor(200,200,200); doc.rect(14,y+8,80,18);
+  doc.setFontSize(7.5); doc.setTextColor(160,160,160);
+  doc.text("DISTRIVIA Distribution Group · Dakar, Sénégal"+(co.ninea?" · NINEA "+co.ninea:""), W/2, 287, {align:"center"});
+  return doc;
+}
+async function downloadDevisPDF(docId){
+  let d = (window.__devisCache||[]).find(x=>x._docId===docId||x.id===docId);
+  if(CONFIGURED && (!d || !d.quoteLines)){
+    try{
+      await fbReady();
+      const snap = await fdb.collection("portal_devis").doc(docId).get();
+      if(snap.exists) d = snap.data();
+    }catch(e){}
+  }
+  if(!d){ toast("Devis introuvable."); return; }
+  if(!d.quoteLines||!d.quoteLines.length){ toast("Le devis n'a pas encore été établi par DISTRIVIA."); return; }
+  pdfDevisPortail(d).save((d.localQuoteNum||d.ref||"devis")+".pdf");
+}
+window.downloadDevisPDF=downloadDevisPDF;
 async function clientDevisHTML(){
   let list=[];
-  try{ list=await dbList("portal_devis","client_id",session.id); }catch(e){ list=[]; }
+  try{
+    if(CONFIGURED){
+      await fbReady();
+      const snap = await fdb.collection("portal_devis").where("client_id","==",session.id).get();
+      list = snap.docs.map(d=>({...d.data(), _docId:d.id})).sort((a,b)=>(a.created<b.created?1:-1));
+    } else {
+      list = await dbList("portal_devis","client_id",session.id);
+    }
+  }catch(e){ list=[]; }
+  window.__devisCache=list;
   if(!list.length) return `<div class="card" style="text-align:center"><p style="margin-bottom:6px">${t("devis_none")}</p><p class="muted" style="font-size:13px;margin-bottom:14px">${t("devis_intro")}</p><button class="btn" onclick="setTab('new')">${t("tab_new")}</button></div>`;
   const devStatus=s=>({new:t("dev_st_new"),processed:t("dev_st_processed"),cancelled:t("ost_cancelled")}[s]||s);
   const devBadge=s=> s==="processed"?"delivered":(s==="cancelled"?"cancelled":"new");
   return `<p class="muted" style="margin-bottom:12px">${t("devis_intro")}</p><div class="tablewrap"><table>
-    <tr><th>${t("ord_col_ref")}</th><th>${t("inv_col_date")}</th><th>${t("ord_col_articles")}</th><th class="num">${t("devis_col_est")}</th><th>${t("inv_col_status")}</th></tr>
-    ${list.map(d=>`<tr><td><b>${esc(d.ref||"")}</b>${d.localQuoteNum?`<div class="muted" style="font-size:11px">${esc(d.localQuoteNum)}</div>`:""}</td><td>${(d.created||"").slice(0,10)}</td>
+    <tr><th>${t("ord_col_ref")}</th><th>${t("inv_col_date")}</th><th>${t("ord_col_articles")}</th><th class="num">${t("devis_col_est")}</th><th>${t("inv_col_status")}</th><th></th></tr>
+    ${list.map(d=>`<tr>
+      <td><b>${esc(d.ref||"")}</b>${d.localQuoteNum?`<div class="muted" style="font-size:11px">${esc(d.localQuoteNum)}</div>`:""}</td>
+      <td>${(d.created||"").slice(0,10)}</td>
       <td>${(d.items||[]).map(i=>(+i.qty||1)+"× "+esc(i.name||"")).join(", ")}</td>
-      <td class="num">${(typeof d.estTotal==="number"&&isFinite(d.estTotal))?money(d.estTotal):"—"}</td>
-      <td><span class="badge ${devBadge(d.status)}">${devStatus(d.status)}</span></td></tr>`).join("")}
-  </table></div>`;
+      <td class="num">${(typeof d.quoteTotal==="number"&&d.quoteTotal>0)?money(d.quoteTotal):(typeof d.estTotal==="number"&&isFinite(d.estTotal))?money(d.estTotal)+"*":"—"}</td>
+      <td><span class="badge ${devBadge(d.status)}">${devStatus(d.status)}</span></td>
+      <td>${(d.status==="processed"&&d.quoteLines&&d.quoteLines.length)?`<button class="btn sm b" onclick="downloadDevisPDF('${esc(d._docId||d.id||d.ref)}')">PDF</button>`:""}</td>
+    </tr>`).join("")}
+  </table>
+  <p class="muted" style="font-size:11px;margin-top:6px">* Total estimé à la demande — le montant définitif figure dans le PDF.</p>
+  </div>`;
 }
 window.clientDevisHTML=clientDevisHTML;
 async function clientApptHTML(){
